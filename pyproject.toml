@@ -24,6 +24,7 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = ["postgres: tests requiring a live PostgreSQL database"]
 addopts = "-q -p no:cacheprovider"
 
 [tool.ruff]
