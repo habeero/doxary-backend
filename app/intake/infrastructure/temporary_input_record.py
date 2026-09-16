@@ -20,6 +20,9 @@ class TemporaryInputRecord(Base):
         ForeignKey("operations.operation_id"), primary_key=True
     )
     input_kind: Mapped[str] = mapped_column(String(16), nullable=False)
+    client_document_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    output_language: Mapped[str | None] = mapped_column(String(35), nullable=True)
+    output_style: Mapped[str | None] = mapped_column(String(16), nullable=True)
     storage_reference: Mapped[str] = mapped_column(String(128), nullable=False, unique=True)
     file_metadata: Mapped[list] = mapped_column(metadata_json_type, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

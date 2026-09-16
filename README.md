@@ -2,7 +2,7 @@
 
 This is the dedicated backend for Doxary, a local-first assistant that helps people understand German administrative and formal documents. The Flutter client remains the durable MVP owner of product documents and related state. The backend will temporarily process requested uploads, coordinate AI-capable providers behind server boundaries, validate structured output, and record privacy-safe operational usage.
 
-**Current status: Backend Phase 2.3 — durable analysis worker.** The repository provides the Phase 2.1 analysis contract/result foundation, Phase 2.2 temporary intake, and a PostgreSQL-backed leased worker with bounded retries. It contains no AI provider, OCR, accounts, billing, cloud document storage, or deployment infrastructure.
+**Current status: Backend Phase 2.4 — OpenAI analysis provider.** The repository provides opt-in Responses API execution, structured `AnalysisResult v1` validation, temporary result persistence, and provider telemetry. Public polling and Flutter integration remain deferred.
 
 Start with [Product context](docs/PRODUCT_CONTEXT.md), then [Architecture](docs/ARCHITECTURE.md), [API contract](docs/API_CONTRACT.md), and [Decisions](docs/DECISIONS.md). Each concern has one authoritative document, listed in [Architecture](docs/ARCHITECTURE.md#documentation-authority).
 

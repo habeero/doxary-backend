@@ -9,6 +9,7 @@ def test_factory_accepts_isolated_configuration_override():
     assert app.config["TESTING"] is True
 
 
-def test_production_requires_database_url():
+def test_production_requires_database_url(monkeypatch):
+    monkeypatch.setenv("DOXARY_DATABASE_URL", "")
     with pytest.raises(ValidationError, match="DATABASE_URL"):
         create_app({"APP_ENV": "production"})

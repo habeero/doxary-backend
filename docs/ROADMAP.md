@@ -1,5 +1,7 @@
 # Backend roadmap
 
+Phase 2.4 implements opt-in OpenAI Responses analysis, versioned prompts, structured result validation, and temporary provider telemetry. Phase 2.5 still owns public operation polling and result delivery; Phase 2.6 owns Flutter integration.
+
 - **Phase 0 — current:** authoritative architecture and documentation only.
 - **Phase 1 — Flask foundation:** implemented application factory, typed config, PostgreSQL-oriented SQLAlchemy/Alembic foundation, API v1 process health/error/correlation/log-redaction, operation/attempt/usage/idempotency persistence, provider-neutral AI interfaces, and tests. No real provider.
 - **Phase 2 — AI document analysis:** temporary uploads, initial provider adapter, vision/document analysis, structured validation, quality outcomes, operation attempts, usage/cost, prompt/model routing, and Flutter contract integration.

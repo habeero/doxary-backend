@@ -9,6 +9,14 @@ AI is an infrastructure capability behind application-facing responsibilities eq
 
 Provider-specific SDK types, concrete model names, request/response formats, and credentials remain infrastructure/configuration. Domain/application code does not import them. The initial anticipated provider does not constitute an implementation or commitment in this phase.
 
+## Phase 2.4 provider adapter
+
+Phase 2.4 provides an opt-in OpenAI Responses API adapter behind the worker executor boundary. It sends a PDF as a temporary provider file or ordered images as one request, requests strict typed structured output, and returns only validated Doxary `AnalysisResult` values. The adapter derives a transport-only schema that omits strict-mode-unsupported domain constraints; the full Doxary contract still revalidates every returned value. Model, timeout, and optional reasoning effort are infrastructure configuration; the SDK has zero internal retries so the worker owns bounded retries.
+
+Provider failures retain only bounded technical diagnostics on the operation attempt (exception class, HTTP status, provider code/type, and request ID where available). The server injects Doxary's local `client_document_id` and fixed schema version after provider output and before domain validation, so server-owned identifiers are not part of the provider schema. Request content, provider messages, raw payloads, and credentials are never retained.
+
+Document-analysis Responses requests explicitly set `store=False`. Usage and latency are captured for every provider response before Doxary mapping; mapping or domain-validation failure still records a failed `UsageEvent` and cost when pricing is known, but never creates an `OperationResult`.
+
 ## Prompt strategy
 
 Prompts will be registered and versioned with identifier, version, purpose, expected inputs, output schema version, safety/behavior rules, and where appropriate synthetic/redacted evaluation fixtures. Prompt/model/config references are recorded on operations and usage events, allowing regressions in quality or cost to be correlated without storing source content. Prompts are not scattered string literals.

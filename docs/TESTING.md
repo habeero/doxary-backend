@@ -1,6 +1,10 @@
 # Testing strategy
 
-Phase 2.3 has six focused worker tests covering no-work polling, claim/attempt history, active versus stale leases, bounded retry exhaustion, unavailable/non-retryable/missing/expired/deleted input failures, exception isolation, and bounded `run_once`. SQLite validates workflow behavior only; PostgreSQL `SKIP LOCKED` concurrency requires a live PostgreSQL service and remains pending without a live database.
+Phase 2.4 adds configuration, provider-boundary, cost, and worker/provider workflow coverage. Provider tests use a fake Responses client and never call OpenAI. They verify PDF file input and cleanup, ordered image input, prompt/schema selection, validated output, usage/latency, and provider-neutral failures. Workflow tests verify durable result and usage persistence, retry retention, terminal cleanup, and malformed-output rejection. Pricing uses exact `Decimal` arithmetic and an immutable snapshot; unknown models remain unpriced.
+
+The worker's claim transaction commits before executor/network work and a separate transaction persists the terminal outcome. SQLite validates application workflow only. PostgreSQL `FOR UPDATE SKIP LOCKED`, row-lock exclusion, and concurrent claim behavior require the opt-in live PostgreSQL integration tests and are not proven by SQLite.
+
+Provider boundary tests also map handcrafted complete, partial, and unavailable transport payloads through the production injection/validation helper, verify `store=False`, and verify failed provider responses retain usage/cost telemetry without creating results.
 
 Normal automated tests use fakes/fixtures, not live paid provider calls or real sensitive documents. Fixtures are synthetic or appropriately redacted.
 

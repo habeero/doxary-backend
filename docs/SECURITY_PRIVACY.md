@@ -2,6 +2,12 @@
 
 Doxary may process identity, immigration, employment, health, financial, and housing information. Architecture is not GDPR compliance or legal advice. Before production, verify provider DPA, data residency, retention, roles/lawful basis, DPIA need, privacy notice, deletion behavior, and applicable legal review.
 
+## Phase 2.4 provider data flow
+
+When explicitly enabled, the worker sends a temporary Doxary PDF or ordered images to OpenAI for analysis. The API key remains backend-only and is never logged, persisted, or exposed to Flutter. Raw provider payloads are not retained; structured output is validated before temporary result persistence. Provider retention, legal terms, and regional processing require deployment review.
+
+Document-analysis requests explicitly set `store=False`; this is an application privacy control, not a claim of GDPR compliance.
+
 ## Required controls
 
 - Require TLS; keep secrets in secret management, never source control or client apps; disable production debug and stack-trace disclosure.

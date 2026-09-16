@@ -1,5 +1,7 @@
 # Configuration
 
+Pydantic Settings loads an optional local `.env`; operating-system environment variables override it. `.env` is ignored, `.env.example` is safe to track, and production may rely exclusively on environment/secret management. Phase 2.4 adds explicit AI enablement, OpenAI API key, model, reasoning effort, and timeout settings. Enabling AI without a key is a startup configuration error.
+
 Worker defaults are poll interval 2 seconds, lease 300 seconds, maximum attempts 3, and retry delay 5 seconds. These are development/runtime defaults, not final production policy.
 
 Future runtime configuration is centralized, typed, validated at startup, and injected through composition. Modules must not scatter `os.getenv` calls. Separate development, test, and production configurations; secrets are supplied only by an environment/secret manager, never committed or returned by endpoints.

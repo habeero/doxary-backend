@@ -11,6 +11,7 @@ requires-python = ">=3.12,<3.15"
 dependencies = [
   "alembic>=1.15,<2",
   "Flask>=3.1,<4",
+  "openai>=1.68,<2",
   "psycopg[binary]>=3.2,<4",
   "pydantic-settings>=2.8,<3",
   "SQLAlchemy>=2.0,<3",
@@ -24,7 +25,7 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-markers = ["postgres: tests requiring a live PostgreSQL database"]
+markers = ["postgres: tests requiring a live PostgreSQL database", "openai: opt-in live OpenAI tests"]
 addopts = "-q -p no:cacheprovider"
 
 [tool.ruff]

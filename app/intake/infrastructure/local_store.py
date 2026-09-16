@@ -40,6 +40,9 @@ class LocalTemporaryDocumentStore:
                 "created_at": created_at.isoformat(),
                 "expires_at": expires_at.isoformat(),
                 "input_kind": document_input.kind.value,
+                "client_document_id": document_input.client_document_id,
+                "output_language": document_input.output_language,
+                "output_style": document_input.output_style,
                 "files": metadata,
             }
             (directory / "manifest.json").write_text(
@@ -83,7 +86,13 @@ class LocalTemporaryDocumentStore:
         manifest = json.loads(
             (self._directory(storage_reference) / "manifest.json").read_text(encoding="utf-8")
         )
-        return DocumentInput(kind=InputKind(str(manifest["input_kind"])), files=tuple(files))
+        return DocumentInput(
+            kind=InputKind(str(manifest["input_kind"])),
+            files=tuple(files),
+            client_document_id=str(manifest["client_document_id"]),
+            output_language=str(manifest["output_language"]),
+            output_style=str(manifest["output_style"]),
+        )
 
     def delete_expired(self, at: datetime) -> int:
         if not self._root.exists():

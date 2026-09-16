@@ -38,6 +38,10 @@ Phase 2.2 accepts one PDF or ordered images through `POST /api/v1/document-analy
 
 Phase 2.3 uses PostgreSQL row locking (`FOR UPDATE SKIP LOCKED`) as the MVP durable queue. Claims carry a worker ID and bounded lease; stale leases are reclaimable and attempt history drives a finite retry budget. The worker runs as `python -m app.worker`, outside Flask request lifetimes, and does not fabricate provider results. Redis/Celery/cloud queues remain deferred until throughput, contention, or distributed-runtime evidence justifies adoption.
 
+### D-010 — Opt-in Responses API provider execution
+
+Phase 2.4 keeps provider execution behind the worker executor boundary. OpenAI is enabled explicitly, the SDK uses no implicit retries, and temporary provider file resources are deleted after a request where possible. Public status/result delivery remains Phase 2.5.
+
 ## Open questions (intentionally unresolved)
 
 - Initial provider and exact model/configuration; regional/provider processing terms.

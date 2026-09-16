@@ -17,7 +17,11 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 settings = Settings.load()
-if "database_url" in settings.model_fields_set:
+configured_url = config.get_main_option("sqlalchemy.url")
+if not configured_url or configured_url in {
+    "driver://user:pass@localhost/dbname",
+    "postgresql+psycopg://localhost/doxary",
+}:
     config.set_main_option("sqlalchemy.url", settings.resolved_database_url)
 
 target_metadata = Base.metadata

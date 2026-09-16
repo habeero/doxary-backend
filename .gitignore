@@ -6,3 +6,6 @@ __pycache__/
 .mypy_cache/
 .venv/
 *.db
+.env
+.env.local
+.env.*.local

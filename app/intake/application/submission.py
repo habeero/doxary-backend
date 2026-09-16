@@ -84,6 +84,8 @@ class SubmissionService:
                         created_at=operation.created_at,
                     )
                 )
+                # Ensure the FK target exists before SQLAlchemy flushes the idempotency row.
+                session.flush()
                 session.add(
                     IdempotencyRecord(
                         idempotency_record_id=new_opaque_id(),
@@ -101,6 +103,9 @@ class SubmissionService:
                     TemporaryInputRecord(
                         operation_id=operation_id,
                         input_kind=document_input.kind.value,
+                        client_document_id=document_input.client_document_id,
+                        output_language=document_input.output_language,
+                        output_style=document_input.output_style,
                         storage_reference=stored.storage_reference,
                         file_metadata=list(stored.file_metadata),
                         created_at=stored.created_at,
