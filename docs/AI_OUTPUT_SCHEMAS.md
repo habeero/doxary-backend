@@ -22,6 +22,8 @@ The Pydantic boundary rejects unknown fields, invalid enum values, malformed nes
 
 OpenAI transport output is a separate, weaker representation. Doxary explicitly normalizes only the date/time paths listed in `AI_ARCHITECTURE.md`, then validates the complete provider-neutral `AnalysisResult v1`. Plain ISO dates and UTC/naive-midnight date datetimes are accepted; timezone-bearing appointment times and ambiguous date/time values are rejected. Amount values are not generically normalized.
 
+The prompt and transport-schema descriptions require normalized machine-readable dates/times; natural-language or locale-formatted dates are not accepted. A staging run produced a non-ISO string for `deadlines[0].value`, confirming that transport descriptions/prompt guidance must be paired with strict post-response validation.
+
 ## Assistant results
 
 Question and reply-draft schemas are also versioned and document-scoped. A question answer includes an answer language, uncertainties, and evidence references. A German reply draft includes purpose, assumptions, missing information, and optional explanatory translation. Both must clearly surface absent context instead of inventing information.

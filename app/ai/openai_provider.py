@@ -218,12 +218,51 @@ def structured_output_format() -> dict:
     for server_owned in ("client_document_id", "schema_version"):
         schema["properties"].pop(server_owned, None)
         schema["required"].remove(server_owned)
+    _annotate_transport_date_time_fields(schema)
     return {
         "type": "json_schema",
         "name": "analysis_result_v1",
         "strict": True,
         "schema": schema,
     }
+
+
+def _annotate_transport_date_time_fields(schema: dict) -> None:
+    """Add machine-readable semantics where OpenAI cannot carry ``format``."""
+    descriptions = {
+        (
+            "DocumentDate",
+            "value",
+        ): "Normalized calendar date: YYYY-MM-DD, or UTC/naive midnight ISO datetime.",
+        (
+            "Deadline",
+            "value",
+        ): "Normalized calendar date: YYYY-MM-DD, or UTC/naive midnight ISO datetime.",
+        (
+            "Appointment",
+            "appointment_date",
+        ): "Normalized calendar date: YYYY-MM-DD, or UTC/naive midnight ISO datetime.",
+        (
+            "Appointment",
+            "appointment_time",
+        ): "Offset-free ISO time (HH:MM[:SS[.ffffff]]); no timezone.",
+        (
+            "Amount",
+            "due_date",
+        ): "Normalized calendar date: YYYY-MM-DD, or UTC/naive midnight ISO datetime.",
+        (
+            "RequiredDocument",
+            "due_date",
+        ): "Normalized calendar date: YYYY-MM-DD, or UTC/naive midnight ISO datetime.",
+        (
+            "SuggestedTask",
+            "due_date",
+        ): "Normalized calendar date: YYYY-MM-DD, or UTC/naive midnight ISO datetime.",
+    }
+    for (definition, field), description in descriptions.items():
+        properties = schema.get("$defs", {}).get(definition, {}).get("properties", {})
+        if field in properties:
+            properties[field]["description"] = description
 
 
 def _without_transport_unsupported_keywords(value):
@@ -339,20 +378,56 @@ def _normalize_time(value):
 
 def _safe_validation_diagnostic(error: Exception, payload: dict | None = None) -> str:
     """Validation exception class only; validation inputs may contain document-derived text."""
-    diagnostic = f"exception={type(error).__name__}"
+    diagnostic = "VE"
     errors = getattr(error, "errors", None)
     if callable(errors):
         safe_issues = []
         for issue in errors()[:6]:
-            location = ".".join(str(part) for part in issue.get("loc", ()))
-            category = str(issue.get("type", "invalid"))
-            metadata = (
-                _safe_representation_metadata(payload, issue.get("loc", ())) if payload else ""
-            )
-            safe_issues.append(f"{location}:{category}{metadata}")
+            location_parts = tuple(issue.get("loc", ()))
+            location = _compact_issue_location(location_parts)
+            category = _compact_issue_category(str(issue.get("type", "invalid")))
+            metadata = _safe_representation_metadata(payload, location_parts) if payload else ""
+            candidate = f"{location}:{category}{metadata}"
+            prefix = diagnostic + ";"
+            if (
+                len(prefix)
+                + sum(
+                    len(item) + (1 if index else 0)
+                    for index, item in enumerate(safe_issues + [candidate])
+                )
+                > 128
+            ):
+                break
+            safe_issues.append(candidate)
         if safe_issues:
-            diagnostic += ",issues=" + "|".join(safe_issues)
+            diagnostic += ";" + ";".join(safe_issues)
     return bound_diagnostic(diagnostic) or "exception=unknown"
+
+
+def _compact_issue_location(location) -> str:
+    if len(location) >= 4 and location[:2] == ("extracted_facts", "document_date"):
+        return "dfd"
+    if len(location) >= 4 and location[0] == "extracted_facts":
+        labels = {
+            "deadlines": "dl",
+            "appointments": "ap",
+            "amounts": "am",
+            "required_documents": "rd",
+            "suggested_tasks": "st",
+        }
+        label = labels.get(location[1])
+        if label and isinstance(location[2], int):
+            suffix = str(location[3])
+            return f"{label}{location[2]}{suffix[:1]}"
+    return ".".join(str(part) for part in location)
+
+
+def _compact_issue_category(category: str) -> str:
+    return {
+        "date_from_datetime_parsing": "dd",
+        "time_delta_parsing": "ti",
+        "missing": "missing",
+    }.get(category, category[:12])
 
 
 def _safe_representation_metadata(payload: dict, location) -> str:
@@ -378,11 +453,8 @@ def _safe_representation_metadata(payload: dict, location) -> str:
                 midnight = parsed.time() == time.min
             except ValueError:
                 pass
-        return (
-            f"[type=str,date={int(iso_date)},datetime={int(iso_datetime)},"
-            f"tz={int(timezone)},midnight={int(midnight)}]"
-        )
-    return f"[type={type(value).__name__}]"
+        return f"[t=s,d={int(iso_date)},dt={int(iso_datetime)},z={int(timezone)},m={int(midnight)}]"
+    return f"[t={type(value).__name__[:8]}]"
 
 
 def _cached_tokens(usage) -> int | None:

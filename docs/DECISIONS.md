@@ -52,7 +52,9 @@ Phase 2.5 exposes `GET /api/v1/operations/{operation_id}` as a read-only, idempo
 
 ### D-014 - Explicit transport/domain normalization boundary
 
-Provider structured output uses a transport schema weaker than Pydantic domain constraints. Doxary normalizes only enumerated date/time paths using documented, conservative ISO rules, then performs authoritative `AnalysisResult v1` validation. Ambiguous values fail closed; provider output and document-derived values are never logged. The truncated staging `required_documents` diagnostic remains of unknown nested cause.
+Provider structured output uses a transport schema weaker than Pydantic domain constraints. Doxary normalizes only enumerated date/time paths using documented, conservative ISO rules, then performs authoritative `AnalysisResult v1` validation. Ambiguous values fail closed; provider output and document-derived values are never logged.
+
+The second staging run subsequently identified the exact safe path/category as `required_documents[0].due_date:date_from_datetime_parsing`; the source value remains intentionally unknown. Diagnostics use compact path identifiers and representation metadata, bounded to the existing `VARCHAR(128)` contract.
 
 ### D-013 - One-host Compose staging topology
 

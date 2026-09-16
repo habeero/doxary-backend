@@ -120,6 +120,9 @@ def test_transport_schema_is_strict_and_removes_unsupported_domain_constraints()
     assert "client_document_id" not in format_config["schema"]["required"]
     assert "schema_version" not in format_config["schema"]["properties"]
     assert "schema_version" not in format_config["schema"]["required"]
+    defs = format_config["schema"]["$defs"]
+    assert "YYYY-MM-DD" in defs["Deadline"]["properties"]["value"]["description"]
+    assert "no timezone" in defs["Appointment"]["properties"]["appointment_time"]["description"]
 
 
 def test_failure_diagnostic_contains_only_safe_technical_fields():
@@ -150,9 +153,9 @@ def test_validation_diagnostic_retains_only_error_path_and_category():
         AnalysisResult.model_validate({})
     except Exception as error:
         diagnostic = _safe_validation_diagnostic(error)
-    assert "exception=ValidationError" in diagnostic
+    assert diagnostic.startswith("VE;")
     assert "analysis_status:missing" in diagnostic
-    assert "issues=" in diagnostic
+    assert ";" in diagnostic
 
 
 def test_complete_partial_and_unavailable_transport_payloads_map_through_contract():
@@ -243,6 +246,19 @@ def test_date_datetime_diagnostic_reports_shape_without_value():
     with pytest.raises(ValidationError) as captured:
         _parse_transport_result(json.dumps(payload), _document())
     diagnostic = captured.value._doxary_diagnostic
-    assert "extracted_facts.deadlines.0.value" in diagnostic
-    assert "type=str" in diagnostic
+    assert "dl0v:dd" in diagnostic
+    assert "rd0d:dd" in diagnostic
+    assert "st0d:dd" in diagnostic
+    assert len(diagnostic) <= 128
+    assert "t=s,d=0,dt=0,z=0,m=0" in diagnostic
     assert "30/09/2026" not in diagnostic
+
+
+def test_source_text_preserves_human_wording_without_normalizing_the_date():
+    payload = _result().model_dump()
+    payload.pop("client_document_id")
+    payload["extracted_facts"] = {
+        "deadlines": [{"description": "Reply", "value": None, "source_text": "Ende September"}]
+    }
+    parsed = _parse_transport_result(json.dumps(payload), _document())
+    assert parsed.extracted_facts.deadlines[0].source_text == "Ende September"

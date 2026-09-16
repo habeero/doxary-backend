@@ -22,6 +22,10 @@ class StaticPromptRegistry:
                 "issues and uncertainty. Prefer partial or unavailable over invention. Do not give "
                 "legal advice or calculate unstated legal deadlines. Set analysis_status to "
                 "complete only when a matching explanation is present; otherwise use partial or "
-                "unavailable."
+                "unavailable. For every normalized date or due_date, emit only a machine-readable "
+                "ISO calendar date (YYYY-MM-DD), or an ISO datetime at UTC/naive midnight; never "
+                "emit natural-language or locale-formatted dates. Put human-readable wording in "
+                "source_text and use uncertainty when a date is ambiguous. Appointment times must "
+                "be offset-free ISO times without timezone information."
             ),
         )

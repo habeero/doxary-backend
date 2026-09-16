@@ -27,4 +27,6 @@ Phase 2.5 API tests cover pending and terminal status delivery, repeated GET ide
 
 Phase 2.7a adds Dockerfile/Compose static validation and a documented local smoke path using AI-disabled synthetic inputs. It must verify build, migration, liveness, shared temporary storage, PostgreSQL volume persistence, and clean restarts where Docker is available; it never makes a paid provider call.
 
-Transport regression tests cover every date/time-bearing `AnalysisResult` path, preserve Decimal amount values, reject ambiguous/timezone-bearing representations, and retain privacy-safe validation paths/types. Staging identified a validation issue below `extracted_facts.required_documents`, but the original diagnostic was truncated; tests prove malformed structures are rejected, not that they were the staging payload.
+Transport regression tests cover every date/time-bearing `AnalysisResult` path, preserve Decimal amount values, reject ambiguous/timezone-bearing representations, and retain compact privacy-safe validation paths/types within the 128-character persistence bound. Staging proved `required_documents[0].due_date` failed with `date_from_datetime_parsing`; the raw value was intentionally not recorded.
+
+The provider transport mapping is explicit and must be updated together with its regression test whenever a date/time-bearing domain model or field is added or renamed. Compact diagnostics use `VE;path:category[metadata];...` and retain complete issues only while staying within 128 characters.
