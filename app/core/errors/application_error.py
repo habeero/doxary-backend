@@ -21,6 +21,14 @@ class ErrorCode(StrEnum):
     CONTEXT_NOT_FOUND = "context_not_found"
     CONTEXT_EXPIRED = "context_expired"
     INTERNAL_ERROR = "internal_error"
+    INVALID_MULTIPART = "invalid_multipart"
+    UNSUPPORTED_INPUT_KIND = "unsupported_input_kind"
+    FILE_TOO_LARGE = "file_too_large"
+    TOO_MANY_PAGES = "too_many_pages"
+    EMPTY_FILE = "empty_file"
+    CONFLICTING_PAGE_ORDER = "conflicting_page_order"
+    IDEMPOTENCY_CONFLICT = "idempotency_conflict"
+    STORAGE_FAILURE = "storage_failure"
 
 
 @dataclass(frozen=True)

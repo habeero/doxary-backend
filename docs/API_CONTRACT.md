@@ -28,7 +28,9 @@ The future analysis flow is `POST /api/v1/documents/analyze` → `202 Accepted` 
 
 Analysis accepts one image, multiple ordered images/pages, or one PDF as a logical Document. It must validate allowed MIME and practical file signature/content, declared/actual size, request size, page/file count, malformed/corrupt input, safe generated filenames, and bounded temporary lifecycle. Exact production limits are configuration policy and intentionally unset in Phase 0. Filename extensions alone are never trusted.
 
-Phase 1 implements only `GET /api/v1/health`, returning `{ "status": "ok", "request_id": "..." }`. It is a process-liveness check and deliberately does not assert database readiness. Every current API response returns `X-Request-ID`; an incoming UUID-shaped value in that header is preserved, otherwise the request adapter generates an opaque UUID.
+Phase 1 implements only `GET /api/v1/health`, returning `{ "status": "ok", "request_id": "..." }`. Phase 2.2 adds only `POST /api/v1/document-analyses`; it returns `202 {operation_id,status,request_id}` and does not return analysis. Health is a process-liveness check and deliberately does not assert database readiness. Every current API response returns `X-Request-ID`; an incoming UUID-shaped value in that header is preserved, otherwise the request adapter generates an opaque UUID.
+
+The Phase 2.2 multipart contract uses repeated `files` parts plus required text fields `client_document_id`, `output_language` (`ar` or `de`), `output_style` (`standard`, or `simple` for German), and `input_kind` (`pdf` or `images`). Image submissions additionally provide repeated `page_indexes`, one per file, contiguous from zero. A PDF submission has exactly one file and no page indexes. Files are validated by signatures, not just headers/extensions. The response never exposes a filesystem path or fake result.
 
 ## Operation response, idempotency, and errors
 

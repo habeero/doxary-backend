@@ -12,6 +12,8 @@ Phase 1 persists these lifecycle values and their timestamps without exposing an
 
 Phase 2.1 adds `OperationResult` as a temporary, operation-linked delivery record for a validated `AnalysisResult`. It has its own opaque ID, explicit schema version, created/expiry timestamps, optional deletion timestamp, and one-result-per-operation invariant. It is not a Document, Flutter’s durable analysis history, uploaded content, or FollowUpContext. Expired/deleted results are not returned; a cleanup worker is intentionally deferred.
 
+Phase 2.2 submission creates an accepted `document_analysis` operation only after request validation and temporary storage succeed. It records a one-to-one `temporary_inputs` metadata row and returns `202`; no worker has started and no analysis result is fabricated. Phase 2.3 will add the PostgreSQL-backed worker to claim accepted operations, load input through `TemporaryDocumentStore`, execute the workflow, persist attempts, and eventually produce `OperationResult`. Phase 2.4 will add provider execution, structured output, prompts, and usage capture.
+
 ## Quality versus infrastructure outcomes
 
 Input/document quality is a valid product result: `partial` or `unavailable` with quality reasons such as unreadable text or missing pages. Infrastructure problems are typed failures: validation/unsupported input, rate limit, quota exhaustion, provider timeout/unavailability/failure, structured output invalid, or unexpected internal error. A retryable technical failure must never be represented as a statement about the document’s quality.
@@ -27,3 +29,5 @@ Input/document quality is a valid product result: `partial` or `unavailable` wit
 ## Follow-up context
 
 A later `follow_up_context_id` may reference a minimal cache of validated structured analysis, concise follow-up summary, selected evidence snippets, version, created/expiry timestamps, and deletion state. It excludes original PDFs/images, is not permanent Document storage, has configurable bounded retention, expires automatically, can be explicitly deleted, and must be excluded from ordinary logs/analytics.
+
+Temporary input, OperationResult, and FollowUpContext are three separate lifecycles: original pending-analysis copies, validated result delivery, and later minimized assistant context respectively.

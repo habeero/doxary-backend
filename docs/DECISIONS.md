@@ -30,6 +30,10 @@ Hosting, account auth, exact quota/credit economics, reward advertising, billing
 
 Phase 2.1 stores one validated, versioned `AnalysisResult` payload per operation in `operation_results`, using PostgreSQL JSONB (portable JSON elsewhere), mandatory expiry, and a unique operation relationship. The application boundary accepts only typed Pydantic models and revalidates payloads on reads. This avoids premature normalization of nested facts while preserving a real product contract. OperationResult is temporary delivery state and is deliberately separate from Phase 3 FollowUpContext.
 
+### D-008 — Local temporary intake and metadata-only database record
+
+Phase 2.2 accepts one PDF or ordered images through `POST /api/v1/document-analyses`, validates magic bytes and bounded limits, writes files through the `TemporaryDocumentStore` port, and records only storage reference/metadata in `temporary_inputs`. The initial adapter uses an operation-isolated local filesystem path; server-generated names prevent traversal/collision. A compensating delete handles database/storage failures. Shared/object storage is adopted only when multi-host workers, non-shared container disks, or horizontal scaling make local storage inadequate. No worker or provider call exists yet.
+
 ## Open questions (intentionally unresolved)
 
 - Initial provider and exact model/configuration; regional/provider processing terms.

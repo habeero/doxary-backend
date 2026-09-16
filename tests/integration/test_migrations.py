@@ -22,4 +22,5 @@ def test_initial_migration_creates_only_phase_one_tables(tmp_path: Path):
         "usage_events",
         "idempotency_records",
         "operation_results",
+        "temporary_inputs",
     }

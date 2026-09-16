@@ -1,4 +1,5 @@
 from collections.abc import Mapping
+from pathlib import Path
 from typing import Any, Literal
 
 from pydantic import model_validator
@@ -16,6 +17,11 @@ class Settings(BaseSettings):
     testing: bool = False
     log_level: str = "INFO"
     request_id_header: str = "X-Request-ID"
+    temporary_input_root: Path = Path(".doxary-tmp")
+    max_file_bytes: int = 10 * 1024 * 1024
+    max_submission_bytes: int = 25 * 1024 * 1024
+    max_image_pages: int = 20
+    temporary_input_retention_hours: int = 24
 
     @model_validator(mode="after")
     def require_database_for_production(self) -> "Settings":
@@ -35,6 +41,7 @@ class Settings(BaseSettings):
             "DEBUG": self.debug,
             "TESTING": self.testing,
             "REQUEST_ID_HEADER": self.request_id_header,
+            "MAX_CONTENT_LENGTH": self.max_submission_bytes,
         }
 
     @property

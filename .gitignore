@@ -1,6 +1,7 @@
 __pycache__/
 *.py[cod]
 .pytest-tmp/
+.doxary-tmp/
 .ruff_cache/
 .mypy_cache/
 .venv/

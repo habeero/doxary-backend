@@ -4,6 +4,7 @@ from alembic import context
 from app.core.config.settings import Settings
 from app.core.database.metadata import Base
 from app.idempotency.record import IdempotencyRecord  # noqa: F401
+from app.intake.infrastructure.temporary_input_record import TemporaryInputRecord  # noqa: F401
 from app.operations.infrastructure.attempt_record import OperationAttemptRecord  # noqa: F401
 from app.operations.infrastructure.operation_record import OperationRecord  # noqa: F401
 from app.operations.infrastructure.operation_result_record import (
