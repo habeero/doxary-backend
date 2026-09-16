@@ -7,7 +7,7 @@ from typing import Protocol
 
 from sqlalchemy import or_, select
 
-from app.core.time import utc_now
+from app.core.time import as_utc, utc_now
 from app.intake.application.temporary_store import TemporaryDocumentStore
 from app.intake.domain.input import DocumentInput
 from app.intake.infrastructure.temporary_input_record import TemporaryInputRecord
@@ -115,7 +115,13 @@ class AnalysisWorker:
         try:
             with self.session_factory() as session:
                 input_record = session.get(TemporaryInputRecord, operation_id)
-            document = self.store.load(input_record.storage_reference) if input_record else None
+            if (
+                input_record is None
+                or input_record.deleted_at is not None
+                or as_utc(input_record.expires_at) <= now
+            ):
+                raise RuntimeError("missing_temporary_input")
+            document = self.store.load(input_record.storage_reference)
             if document is None:
                 raise RuntimeError("missing_temporary_input")
             outcome = self.executor.execute(document)

@@ -1,6 +1,6 @@
 # Testing strategy
 
-Phase 2.3 worker tests cover lease claiming/recovery, bounded retries, missing storage, and unavailable executor behavior. SQLite validates workflow behavior only; PostgreSQL `SKIP LOCKED` concurrency requires a live PostgreSQL service.
+Phase 2.3 has six focused worker tests covering no-work polling, claim/attempt history, active versus stale leases, bounded retry exhaustion, unavailable/non-retryable/missing/expired/deleted input failures, exception isolation, and bounded `run_once`. SQLite validates workflow behavior only; PostgreSQL `SKIP LOCKED` concurrency requires a live PostgreSQL service and remains pending without a live database.
 
 Normal automated tests use fakes/fixtures, not live paid provider calls or real sensitive documents. Fixtures are synthetic or appropriately redacted.
 
