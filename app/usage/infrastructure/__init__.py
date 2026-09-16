@@ -1,0 +1,1 @@
+"""Usage ledger persistence adapter."""

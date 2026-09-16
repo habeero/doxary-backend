@@ -1,0 +1,1 @@
+"""Logical processing operation boundary."""
