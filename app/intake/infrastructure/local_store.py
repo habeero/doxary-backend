@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from app.intake.application.temporary_store import StoredInput
-from app.intake.domain.input import DocumentInput
+from app.intake.domain.input import DocumentInput, InputFile, InputKind
 
 
 class LocalTemporaryDocumentStore:
@@ -66,6 +66,25 @@ class LocalTemporaryDocumentStore:
             file_metadata=tuple(payload["files"]),
         )
 
+    def load(self, storage_reference: str) -> DocumentInput:
+        stored = self.retrieve_metadata(storage_reference)
+        files = []
+        for index, metadata in enumerate(stored.file_metadata):
+            content = (self._directory(storage_reference) / f"file-{index:04d}.bin").read_bytes()
+            files.append(
+                InputFile(
+                    content=content,
+                    media_type=str(metadata["media_type"]),
+                    original_filename=str(metadata["original_filename"]),
+                    page_index=metadata.get("page_index"),
+                    sha256=str(metadata["sha256"]),
+                )
+            )
+        manifest = json.loads(
+            (self._directory(storage_reference) / "manifest.json").read_text(encoding="utf-8")
+        )
+        return DocumentInput(kind=InputKind(str(manifest["input_kind"])), files=tuple(files))
+
     def delete_expired(self, at: datetime) -> int:
         if not self._root.exists():
             return 0
@@ -87,6 +106,8 @@ class LocalTemporaryDocumentStore:
         return deleted
 
     def _directory(self, storage_reference: str) -> Path:
+        if len(Path(storage_reference).parts) != 1:
+            raise ValueError("invalid storage reference")
         directory = (self._root / storage_reference).resolve()
         if directory.parent != self._root:
             raise ValueError("invalid storage reference")

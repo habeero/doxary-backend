@@ -4,7 +4,7 @@
 
 The intended implementation is a Python/Flask modular monolith with an application factory, `/api/v1` blueprints, PostgreSQL, SQLAlchemy, Alembic, typed request/response schemas, centralized configuration, typed errors, and structured privacy-safe logging. Dependencies are explicitly composed at bootstrap; no global service locator or magic injection is used.
 
-Phase 1 implements this foundation under `app/`. `bootstrap/app_factory.py` creates an isolated app and invokes the explicit `Container` composition function; imports alone do not create engines or connections. `operations` has a domain model, persistence port, and focused SQLAlchemy adapter. Usage and idempotency are infrastructure-only persistence concerns in this phase, so they do not receive ceremonial domain layers. `ai/ports.py` supplies provider-neutral protocols only.
+Phase 1 implements this foundation under `app/`. Phase 2.1 adds typed analysis/result boundaries; Phase 2.2 adds `intake/` application/domain ports and local storage/metadata adapters. `bootstrap/app_factory.py` creates an isolated app and invokes the explicit `Container` composition function; imports alone do not create engines or connections. `operations` has domain models, persistence ports, and focused SQLAlchemy adapters. Usage, idempotency, and temporary-input metadata are infrastructure-only persistence concerns, so they do not receive ceremonial domain layers. `ai/ports.py` supplies provider-neutral protocols only.
 
 The directional shape is:
 
@@ -33,6 +33,10 @@ API/Flask --> application --> domain
 ```
 
 Provider adapters live in AI infrastructure. Model routing, prompt selection, and output validation are reached through application-facing ports. No provider model name or payload becomes a domain/API product type.
+
+## Phase 2.3 worker
+
+`python -m app.worker` is a separate polling process. PostgreSQL is the durable queue: a short `FOR UPDATE SKIP LOCKED` transaction claims one eligible operation, records its attempt and lease, then commits before loading input or executing. Completion/retry is a second short transaction. Stale leases are reclaimable; defaults are operational values.
 
 ## Documentation authority
 

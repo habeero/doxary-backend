@@ -1,5 +1,7 @@
 # Testing strategy
 
+Phase 2.3 worker tests cover lease claiming/recovery, bounded retries, missing storage, and unavailable executor behavior. SQLite validates workflow behavior only; PostgreSQL `SKIP LOCKED` concurrency requires a live PostgreSQL service.
+
 Normal automated tests use fakes/fixtures, not live paid provider calls or real sensitive documents. Fixtures are synthetic or appropriately redacted.
 
 - **Unit/application:** value behavior, normalization, lifecycle transitions, idempotency decisions, routing/prompt selection with fakes, no-fabrication and quality outcomes.

@@ -22,6 +22,10 @@ class Settings(BaseSettings):
     max_submission_bytes: int = 25 * 1024 * 1024
     max_image_pages: int = 20
     temporary_input_retention_hours: int = 24
+    worker_poll_interval_seconds: float = 2.0
+    worker_lease_seconds: int = 300
+    worker_max_attempts: int = 3
+    worker_retry_delay_seconds: int = 5
 
     @model_validator(mode="after")
     def require_database_for_production(self) -> "Settings":

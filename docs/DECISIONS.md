@@ -34,6 +34,10 @@ Phase 2.1 stores one validated, versioned `AnalysisResult` payload per operation
 
 Phase 2.2 accepts one PDF or ordered images through `POST /api/v1/document-analyses`, validates magic bytes and bounded limits, writes files through the `TemporaryDocumentStore` port, and records only storage reference/metadata in `temporary_inputs`. The initial adapter uses an operation-isolated local filesystem path; server-generated names prevent traversal/collision. A compensating delete handles database/storage failures. Shared/object storage is adopted only when multi-host workers, non-shared container disks, or horizontal scaling make local storage inadequate. No worker or provider call exists yet.
 
+### D-009 — PostgreSQL worker with leases, no external queue
+
+Phase 2.3 uses PostgreSQL row locking (`FOR UPDATE SKIP LOCKED`) as the MVP durable queue. Claims carry a worker ID and bounded lease; stale leases are reclaimable and attempt history drives a finite retry budget. The worker runs as `python -m app.worker`, outside Flask request lifetimes, and does not fabricate provider results. Redis/Celery/cloud queues remain deferred until throughput, contention, or distributed-runtime evidence justifies adoption.
+
 ## Open questions (intentionally unresolved)
 
 - Initial provider and exact model/configuration; regional/provider processing terms.

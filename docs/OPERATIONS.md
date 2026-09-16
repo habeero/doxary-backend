@@ -14,6 +14,10 @@ Phase 2.1 adds `OperationResult` as a temporary, operation-linked delivery recor
 
 Phase 2.2 submission creates an accepted `document_analysis` operation only after request validation and temporary storage succeed. It records a one-to-one `temporary_inputs` metadata row and returns `202`; no worker has started and no analysis result is fabricated. Phase 2.3 will add the PostgreSQL-backed worker to claim accepted operations, load input through `TemporaryDocumentStore`, execute the workflow, persist attempts, and eventually produce `OperationResult`. Phase 2.4 will add provider execution, structured output, prompts, and usage capture.
 
+## Phase 2.3 worker
+
+The worker claims accepted document-analysis operations with PostgreSQL row locking, records bounded attempts and a worker lease, and executes outside the transaction. Retryable technical failures return to `accepted` after a configured delay; non-retryable or exhausted failures become `failed`. Missing or expired storage is `missing_temporary_input`, never a document-quality result. No provider, result, or usage event is fabricated.
+
 ## Quality versus infrastructure outcomes
 
 Input/document quality is a valid product result: `partial` or `unavailable` with quality reasons such as unreadable text or missing pages. Infrastructure problems are typed failures: validation/unsupported input, rate limit, quota exhaustion, provider timeout/unavailability/failure, structured output invalid, or unexpected internal error. A retryable technical failure must never be represented as a statement about the document’s quality.
