@@ -26,3 +26,5 @@ Phase 2.1 adds contract tests for minimal complete/partial/unavailable results, 
 Phase 2.5 API tests cover pending and terminal status delivery, repeated GET idempotency, safe failed responses, unknown operations, expiry (`410`), missing/corrupt results (fail closed), request correlation, and private no-store caching. These use portable persistence; PostgreSQL locking remains covered only by the live integration suite.
 
 Phase 2.7a adds Dockerfile/Compose static validation and a documented local smoke path using AI-disabled synthetic inputs. It must verify build, migration, liveness, shared temporary storage, PostgreSQL volume persistence, and clean restarts where Docker is available; it never makes a paid provider call.
+
+Transport regression tests cover every date/time-bearing `AnalysisResult` path, preserve Decimal amount values, reject ambiguous/timezone-bearing representations, and retain privacy-safe validation paths/types. Staging identified a validation issue below `extracted_facts.required_documents`, but the original diagnostic was truncated; tests prove malformed structures are rejected, not that they were the staging payload.

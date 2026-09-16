@@ -1,6 +1,7 @@
 import json
 from types import SimpleNamespace
 
+import pytest
 from app.ai.openai_provider import (
     OpenAIAnalysisExecutor,
     PricingSnapshot,
@@ -10,6 +11,7 @@ from app.ai.openai_provider import (
 )
 from app.analysis.contracts import AnalysisResult
 from app.intake.domain.input import DocumentInput, InputFile, InputKind
+from pydantic import ValidationError
 
 
 class FakeResponses:
@@ -163,3 +165,68 @@ def test_complete_partial_and_unavailable_transport_payloads_map_through_contrac
             payload["explanation"] = None
         parsed = _parse_transport_result(json.dumps(payload), _document())
         assert parsed.analysis_status.value == status
+
+
+def test_transport_normalizes_iso_datetime_for_date_fields_without_weakening_contract():
+    payload = _result().model_dump()
+    payload.pop("client_document_id")
+    payload["extracted_facts"] = {
+        "deadlines": [{"description": "Reply", "value": "2026-09-30T00:00:00Z"}],
+        "required_documents": [{"description": "Passport"}],
+    }
+    parsed = _parse_transport_result(json.dumps(payload), _document())
+    assert parsed.extracted_facts.deadlines[0].value.isoformat() == "2026-09-30"
+
+
+def test_transport_rejects_ambiguous_date_and_malformed_required_document():
+    payload = _result().model_dump()
+    payload.pop("client_document_id")
+    payload["extracted_facts"] = {
+        "deadlines": [{"description": "Reply", "value": "09/30/2026"}],
+        "required_documents": [{"due_date": "2026-09-30"}],
+    }
+    with pytest.raises((ValidationError, ValueError)):
+        _parse_transport_result(json.dumps(payload), _document())
+
+
+@pytest.mark.parametrize(
+    ("collection", "entry", "attribute"),
+    [
+        (
+            "appointments",
+            {"purpose": "Call", "appointment_date": "2026-10-01", "appointment_time": "09:30"},
+            "appointment_date",
+        ),
+        (
+            "amounts",
+            {"value": "12.50", "currency": "EUR", "purpose": "Fee", "due_date": "2026-10-02"},
+            "due_date",
+        ),
+        ("required_documents", {"description": "Passport", "due_date": "2026-10-03"}, "due_date"),
+        ("suggested_tasks", {"title": "Reply", "due_date": "2026-10-04"}, "due_date"),
+    ],
+)
+def test_each_explicit_date_time_path_maps_without_generic_value_normalization(
+    collection, entry, attribute
+):
+    payload = _result().model_dump()
+    payload.pop("client_document_id")
+    payload["extracted_facts"] = {collection: [entry]}
+    parsed = _parse_transport_result(json.dumps(payload), _document())
+    assert (
+        getattr(parsed.extracted_facts.__getattribute__(collection)[0], attribute).isoformat()
+        == entry[attribute]
+    )
+    if collection == "amounts":
+        assert str(parsed.extracted_facts.amounts[0].value) == "12.50"
+
+
+def test_timezone_bearing_date_and_time_are_not_silently_reinterpreted():
+    payload = _result().model_dump()
+    payload.pop("client_document_id")
+    payload["extracted_facts"] = {
+        "deadlines": [{"description": "Reply", "value": "2026-09-30T23:30:00+02:00"}],
+        "appointments": [{"purpose": "Call", "appointment_time": "09:30+02:00"}],
+    }
+    with pytest.raises(ValueError):
+        _parse_transport_result(json.dumps(payload), _document())

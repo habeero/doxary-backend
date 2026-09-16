@@ -31,6 +31,7 @@ services:
     networks: [doxary_internal, doxary_egress]
     depends_on:
       postgres: {condition: service_healthy}
+      temporary-init: {condition: service_completed_successfully}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health')"]
       interval: 15s
@@ -54,8 +55,18 @@ services:
     networks: [doxary_internal, doxary_egress]
     depends_on:
       postgres: {condition: service_healthy}
+      temporary-init: {condition: service_completed_successfully}
     logging:
       options: {max-size: "10m", max-file: "3"}
+
+  temporary-init:
+    image: doxary-backend:staging
+    build: .
+    user: "0:0"
+    restart: "no"
+    command: ["sh", "-c", "mkdir -p /var/lib/doxary/tmp && chown 100:101 /var/lib/doxary/tmp"]
+    volumes:
+      - doxary_temporary:/var/lib/doxary/tmp
 
 volumes:
   doxary_postgres:

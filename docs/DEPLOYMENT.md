@@ -2,7 +2,9 @@
 
 One Ubuntu host in Germany runs `postgres` (PostgreSQL 16), `api` (Gunicorn), and `worker` (`python -m app.worker`) from one application image. Compose uses an internal network, named `doxary_postgres` and `doxary_temporary` volumes, and binds API port `127.0.0.1:8000` for a future host-level reverse proxy. PostgreSQL is not publicly exposed; TLS, DNS, and proxy installation are deferred.
 
-The shared temporary volume is valid only while API and worker remain on one host. Split hosts, horizontal scaling, non-shared disks, or stronger durability trigger object-storage evaluation. Temporary files remain bounded and are deleted by existing expiry/terminal cleanup; they are not permanent storage.
+The current staging endpoint is `https://dox-api.habeero.de`; it is a staging deployment address, not automatically the permanent production API contract.
+
+The shared temporary volume is valid only while API and worker remain on one host. A one-shot `temporary-init` Compose service runs as root, creates `/var/lib/doxary/tmp`, and idempotently assigns UID/GID `100:101`; API and worker depend on its successful completion and remain non-root. Split hosts, horizontal scaling, non-shared disks, or stronger durability trigger object-storage evaluation. Temporary files remain bounded and are deleted by existing expiry/terminal cleanup; they are not permanent storage.
 
 ## Configuration and migration
 

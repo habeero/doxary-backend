@@ -21,6 +21,8 @@ The live Phase 2.4 image smoke verification succeeded through Responses, strict 
 
 The provider transport schema contains model-generated fields only. Doxary injects server-owned `client_document_id` and `schema_version`; `AnalysisResult v1` remains authoritative. Model selection is runtime-configurable and separate from pricing snapshots. An unpriced model still records usage, but estimated cost is null—Doxary never fabricates a price.
 
+Transport-to-domain conversion is schema-aware: only `extracted_facts.document_date.value`, `deadlines[].value`, `appointments[].appointment_date`, `appointments[].appointment_time`, `amounts[].due_date`, `required_documents[].due_date`, and `suggested_tasks[].due_date` are considered. Plain ISO dates (`YYYY-MM-DD`) are accepted; date fields may additionally use a naive ISO datetime at midnight or UTC (`Z`/`+00:00`) midnight. Appointment times must be offset-free ISO times. Ambiguous/non-midnight or timezone-bearing appointment values remain invalid; no malformed value is converted to null.
+
 ## Prompt strategy
 
 Prompts will be registered and versioned with identifier, version, purpose, expected inputs, output schema version, safety/behavior rules, and where appropriate synthetic/redacted evaluation fixtures. Prompt/model/config references are recorded on operations and usage events, allowing regressions in quality or cost to be correlated without storing source content. Prompts are not scattered string literals.

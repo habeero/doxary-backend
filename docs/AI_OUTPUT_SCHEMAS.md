@@ -20,6 +20,8 @@ Phase 2.1 implements the provider-neutral Pydantic contract in `app/analysis/con
 
 The Pydantic boundary rejects unknown fields, invalid enum values, malformed nested objects, unsupported schema versions, invalid dates/amounts, and unbounded evidence excerpts. Persisted payloads are revalidated on read before becoming trusted application data.
 
+OpenAI transport output is a separate, weaker representation. Doxary explicitly normalizes only the date/time paths listed in `AI_ARCHITECTURE.md`, then validates the complete provider-neutral `AnalysisResult v1`. Plain ISO dates and UTC/naive-midnight date datetimes are accepted; timezone-bearing appointment times and ambiguous date/time values are rejected. Amount values are not generically normalized.
+
 ## Assistant results
 
 Question and reply-draft schemas are also versioned and document-scoped. A question answer includes an answer language, uncertainties, and evidence references. A German reply draft includes purpose, assumptions, missing information, and optional explanatory translation. Both must clearly surface absent context instead of inventing information.

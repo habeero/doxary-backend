@@ -50,6 +50,10 @@ Document-analysis Responses requests set `store=False`. The provider transport s
 
 Phase 2.5 exposes `GET /api/v1/operations/{operation_id}` as a read-only, idempotent v1 resource. It maps internal states to four public statuses, returns only revalidated `AnalysisResult v1` on success, uses provider-neutral failures, and fails closed for missing/corrupt or expired results. Responses are private and `no-store`; authentication, ownership, quotas, rate limiting, push delivery, and regeneration remain deferred.
 
+### D-014 - Explicit transport/domain normalization boundary
+
+Provider structured output uses a transport schema weaker than Pydantic domain constraints. Doxary normalizes only enumerated date/time paths using documented, conservative ISO rules, then performs authoritative `AnalysisResult v1` validation. Ambiguous values fail closed; provider output and document-derived values are never logged. The truncated staging `required_documents` diagnostic remains of unknown nested cause.
+
 ### D-013 - One-host Compose staging topology
 
 Phase 2.7a prepares one Ubuntu host with API and worker sharing one image, PostgreSQL 16, an internal Compose network, and named PostgreSQL/temporary-input volumes. The API binds loopback port 8000 for a future host reverse proxy. Shared local temporary storage is an MVP constraint; split hosts, horizontal scaling, non-shared disks, or stronger durability trigger object-storage evaluation. No remote provisioning, TLS, Redis, or object storage is included.

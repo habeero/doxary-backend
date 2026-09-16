@@ -2,6 +2,7 @@ import base64
 import json
 import logging
 from dataclasses import dataclass
+from datetime import date, datetime, time
 from decimal import Decimal
 from io import BytesIO
 from time import monotonic
@@ -238,10 +239,94 @@ def _parse_transport_result(output_text: str, document: DocumentInput) -> Analys
     payload = json.loads(output_text)
     if not isinstance(payload, dict):
         raise ValueError("structured response must be an object")
+    payload = _normalize_transport_values(payload)
     # Product correlation is server-owned; it need not be disclosed to the provider.
     payload["client_document_id"] = document.client_document_id
     payload["schema_version"] = SCHEMA_VERSION
     return AnalysisResult.model_validate(payload)
+
+
+def _normalize_transport_values(payload: dict) -> dict:
+    """Normalize only the explicitly date/time-bearing contract paths.
+
+    OpenAI's transport schema cannot carry Pydantic's date/time ``format``
+    constraints. Plain dates and offset-free times are already domain-safe;
+    the only datetime compatibility accepted for a date is UTC midnight,
+    whose calendar date is unambiguous. All other values remain untouched and
+    are rejected by the authoritative domain model.
+    """
+    normalized = dict(payload)
+    facts = normalized.get("extracted_facts")
+    if not isinstance(facts, dict):
+        return normalized
+
+    document_date = facts.get("document_date")
+    if isinstance(document_date, dict) and "value" in document_date:
+        document_date = dict(document_date)
+        document_date["value"] = _normalize_date(document_date["value"])
+        facts = dict(facts)
+        facts["document_date"] = document_date
+
+    for collection, date_key in (
+        ("deadlines", "value"),
+        ("appointments", "appointment_date"),
+        ("amounts", "due_date"),
+        ("required_documents", "due_date"),
+        ("suggested_tasks", "due_date"),
+    ):
+        entries = facts.get(collection)
+        if not isinstance(entries, list):
+            continue
+        updated = []
+        for entry in entries:
+            if not isinstance(entry, dict):
+                updated.append(entry)
+                continue
+            item = dict(entry)
+            if date_key in item:
+                item[date_key] = _normalize_date(item[date_key])
+            if collection == "appointments" and "appointment_time" in item:
+                item["appointment_time"] = _normalize_time(item["appointment_time"])
+            updated.append(item)
+        facts = dict(facts)
+        facts[collection] = updated
+    normalized["extracted_facts"] = facts
+    return normalized
+
+
+def _normalize_date(value):
+    if not isinstance(value, str):
+        return value
+    try:
+        date.fromisoformat(value)
+        return value
+    except ValueError:
+        pass
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return value
+    if parsed.tzinfo is None and parsed.time() == time.min:
+        return parsed.date()
+    if (
+        parsed.tzinfo is not None
+        and parsed.utcoffset().total_seconds() == 0
+        and parsed.time() == time.min
+    ):
+        return parsed.date()
+    return value
+
+
+def _normalize_time(value):
+    if not isinstance(value, str):
+        return value
+    try:
+        parsed = time.fromisoformat(value)
+    except ValueError:
+        return value
+    if parsed.tzinfo is not None:
+        raise ValueError("timezone-bearing appointment times are not supported")
+    return parsed
 
 
 def _safe_validation_diagnostic(error: Exception) -> str:
@@ -250,13 +335,13 @@ def _safe_validation_diagnostic(error: Exception) -> str:
     errors = getattr(error, "errors", None)
     if callable(errors):
         safe_issues = []
-        for issue in errors()[:3]:
+        for issue in errors()[:6]:
             location = ".".join(str(part) for part in issue.get("loc", ()))
             category = str(issue.get("type", "invalid"))
             safe_issues.append(f"{location}:{category}")
         if safe_issues:
             diagnostic += ",issues=" + "|".join(safe_issues)
-    return diagnostic[:128]
+    return diagnostic[:256]
 
 
 def _cached_tokens(usage) -> int | None:
