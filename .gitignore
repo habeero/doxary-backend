@@ -1,6 +1,7 @@
 __pycache__/
 *.py[cod]
 .pytest-tmp/
+.pytest-tmp-local/
 .doxary-tmp/
 .ruff_cache/
 .mypy_cache/
@@ -9,3 +10,4 @@ __pycache__/
 .env
 .env.local
 .env.*.local
+pytest-basetemp-*/

@@ -15,4 +15,12 @@ Phase 2.5 public polling and temporary result delivery is implemented. Phase 2.6
 
 No dates or hosting platform are promised.
 
+## Cross-project Phase 2 delivery sequence
+
+- **Phase 2.6 â€” Flutter integration:** Flutter owns the real-client upload, polling, result mapping, and local persistence path; the backend contract remains stable. Local end-to-end validation is required before deployment.
+- **Phase 2.7 â€” Staging deployment (deferred):** production-like PostgreSQL, web/API and worker processes, HTTPS, runtime secrets, shared temporary storage strategy, migrations, logging/health/readiness, rollback, and deployment documentation.
+- **Phase 2.8 â€” Real-device and beta testing (deferred):** developer real-phone testing, then 2-3 informed trusted testers and later a broader closed beta, collecting quality, cost, latency, and failure evidence without adding document-content telemetry.
+- **Phase 2.9 â€” Beta hardening/release preparation (deferred):** observed-failure fixes, privacy/disclosure review, operational limits, monitoring, release checklist, and Play testing/release readiness.
+- **Phase 3 â€” Document-scoped assistant (deferred):** questions, bounded `FollowUpContext`, and German reply drafting.
+
 The local filesystem adapter is intentionally an MVP runtime assumption. Shared/object storage becomes an adoption decision if API and worker run on different hosts, containers lack shared ephemeral disks, or horizontal scaling requires it; that trigger is deferred rather than ignored.
