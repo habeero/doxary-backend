@@ -14,6 +14,12 @@ Facts and explanation are separate. A deadline fact such as `2026-09-30` does no
 
 Each material extracted fact can contain a typed evidence reference, for example input file/page, bounded relevant location, and optionally a selected source snippet label. Evidence has provenance `analysis`, `user`, or `system`. Full OCR text persistence is not a requirement. User corrections remain authoritative and retain their provenance.
 
+## AnalysisResult v1 implementation
+
+Phase 2.1 implements the provider-neutral Pydantic contract in `app/analysis/contracts.py`. The envelope uses `analysis_result.v1`, typed status/action/urgency/practical-state/quality enums, optional classification suggestions, typed fact collections, evidence references, qualitative uncertainties, and a separate explanation model. Unknown or irrelevant facts remain absent. Complete results require an explanation; partial and unavailable results can safely omit it. Input/provider failures remain operation/API errors rather than quality reasons.
+
+The Pydantic boundary rejects unknown fields, invalid enum values, malformed nested objects, unsupported schema versions, invalid dates/amounts, and unbounded evidence excerpts. Persisted payloads are revalidated on read before becoming trusted application data.
+
 ## Assistant results
 
 Question and reply-draft schemas are also versioned and document-scoped. A question answer includes an answer language, uncertainties, and evidence references. A German reply draft includes purpose, assumptions, missing information, and optional explanatory translation. Both must clearly surface absent context instead of inventing information.

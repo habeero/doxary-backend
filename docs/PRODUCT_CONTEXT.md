@@ -12,4 +12,4 @@ One logical local Document can be one image, multiple ordered images/pages, or o
 
 ## Explicit non-goals
 
-Phase 1 implements only the backend foundation: health, persistence for backend-owned operations/attempts/usage/idempotency, and provider-neutral contracts. The backend is not a generic Habeero platform, multi-tenant application registry, microservice suite, account system, sync service, permanent cloud-file store, billing system, or provider integration.
+Phase 1 and 2.1 implement the backend foundation plus the provider-neutral validated analysis contract and temporary result delivery persistence. Uploads, workers, and providers remain deferred to later Phase 2 increments. The backend is not a generic Habeero platform, multi-tenant application registry, microservice suite, account system, sync service, permanent cloud-file store, billing system, or provider integration.

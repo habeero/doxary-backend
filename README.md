@@ -2,7 +2,7 @@
 
 This is the dedicated backend for Doxary, a local-first assistant that helps people understand German administrative and formal documents. The Flutter client remains the durable MVP owner of product documents and related state. The backend will temporarily process requested uploads, coordinate AI-capable providers behind server boundaries, validate structured output, and record privacy-safe operational usage.
 
-**Current status: Backend Phase 1 — Flask foundation.** The repository provides the application factory, `/api/v1` process-health endpoint, typed configuration/errors, request correlation, privacy-safe structured logging, SQLAlchemy persistence models, and the initial Alembic migration. It contains no AI provider, document upload/analysis, OCR, accounts, billing, cloud document storage, or deployment infrastructure.
+**Current status: Backend Phase 2.1 — analysis contract and temporary results.** The repository provides the Phase 1 Flask foundation plus a typed provider-neutral `AnalysisResult v1`, temporary validated `OperationResult` persistence, and the second Alembic migration. It contains no AI provider, document upload/analysis execution, OCR, accounts, billing, cloud document storage, or deployment infrastructure.
 
 Start with [Product context](docs/PRODUCT_CONTEXT.md), then [Architecture](docs/ARCHITECTURE.md), [API contract](docs/API_CONTRACT.md), and [Decisions](docs/DECISIONS.md). Each concern has one authoritative document, listed in [Architecture](docs/ARCHITECTURE.md#documentation-authority).
 

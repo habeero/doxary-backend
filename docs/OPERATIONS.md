@@ -10,6 +10,8 @@ An **attempt** is a provider-facing execution within an operation. One logical o
 
 Phase 1 persists these lifecycle values and their timestamps without exposing an operation API or executing work. The domain transition model permits only `accepted -> processing/cancelled/expired` and `processing -> succeeded/partial/failed/cancelled/expired`. An attempt table has a unique positive ordinal per operation; it does not imply a provider was called.
 
+Phase 2.1 adds `OperationResult` as a temporary, operation-linked delivery record for a validated `AnalysisResult`. It has its own opaque ID, explicit schema version, created/expiry timestamps, optional deletion timestamp, and one-result-per-operation invariant. It is not a Document, Flutter’s durable analysis history, uploaded content, or FollowUpContext. Expired/deleted results are not returned; a cleanup worker is intentionally deferred.
+
 ## Quality versus infrastructure outcomes
 
 Input/document quality is a valid product result: `partial` or `unavailable` with quality reasons such as unreadable text or missing pages. Infrastructure problems are typed failures: validation/unsupported input, rate limit, quota exhaustion, provider timeout/unavailability/failure, structured output invalid, or unexpected internal error. A retryable technical failure must never be represented as a statement about the document’s quality.

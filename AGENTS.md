@@ -6,6 +6,8 @@
 2. Treat the ADRs in `docs/DECISIONS.md` as authoritative. Record material architecture or contract changes there and update affected documentation in the same change.
 3. Resolve unknown product policy by documenting an open question; do not invent a requirement.
 
+Documentation is part of the Definition of Done. After every implementation change, bug fix, refactor, contract or schema change, or architectural decision, review affected documentation and update it in the same change. Update this file for durable engineering rules, `docs/DECISIONS.md` for durable decisions, and `docs/ROADMAP.md` when functionality changes phase or deferral. Deferred capabilities must retain their rationale, intended phase or adoption trigger, and any preparation required now. If reviewed documentation needs no change, say so in the completion report.
+
 ## Architecture and boundaries
 
 - Keep a pragmatic Flask modular monolith. HTTP blueprints are thin boundaries; compose dependencies explicitly in bootstrap code.

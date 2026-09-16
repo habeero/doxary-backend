@@ -26,6 +26,10 @@ Hosting, account auth, exact quota/credit economics, reward advertising, billing
 
 `GET /api/v1/health` reports process liveness only; it does not claim database readiness. This keeps the initial health contract honest without creating a deployment-specific readiness system. Usage cost is stored as exact decimal plus a canonical immutable price-input snapshot per append-only event, rather than a reference to mutable current pricing. PostgreSQL is production-targeted; SQLite is restricted to fast normal tests, with PostgreSQL validation remaining an explicit local/CI step.
 
+### D-007 — Validated JSON/JSONB temporary operation results
+
+Phase 2.1 stores one validated, versioned `AnalysisResult` payload per operation in `operation_results`, using PostgreSQL JSONB (portable JSON elsewhere), mandatory expiry, and a unique operation relationship. The application boundary accepts only typed Pydantic models and revalidates payloads on reads. This avoids premature normalization of nested facts while preserving a real product contract. OperationResult is temporary delivery state and is deliberately separate from Phase 3 FollowUpContext.
+
 ## Open questions (intentionally unresolved)
 
 - Initial provider and exact model/configuration; regional/provider processing terms.

@@ -6,6 +6,9 @@ from app.core.database.metadata import Base
 from app.idempotency.record import IdempotencyRecord  # noqa: F401
 from app.operations.infrastructure.attempt_record import OperationAttemptRecord  # noqa: F401
 from app.operations.infrastructure.operation_record import OperationRecord  # noqa: F401
+from app.operations.infrastructure.operation_result_record import (
+    OperationResultRecord,  # noqa: F401
+)
 from app.usage.infrastructure.usage_event_record import UsageEventRecord  # noqa: F401
 from sqlalchemy import engine_from_config, pool
 
