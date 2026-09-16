@@ -22,13 +22,13 @@ services:
     env_file: [.env]
     environment:
       DOXARY_APP_ENV: production
-      DOXARY_DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-doxary}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-doxary}
+      DOXARY_DATABASE_URL: ${DOXARY_DATABASE_URL:?set DOXARY_DATABASE_URL}
       DOXARY_TEMPORARY_INPUT_ROOT: /var/lib/doxary/tmp
     command: ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "${DOXARY_GUNICORN_WORKERS:-2}", "--access-logfile", "-", "--error-logfile", "-", "app:create_app()"]
     ports: ["127.0.0.1:8000:8000"]
     volumes:
       - doxary_temporary:/var/lib/doxary/tmp
-    networks: [doxary_internal]
+    networks: [doxary_internal, doxary_egress]
     depends_on:
       postgres: {condition: service_healthy}
     healthcheck:
@@ -46,12 +46,12 @@ services:
     env_file: [.env]
     environment:
       DOXARY_APP_ENV: production
-      DOXARY_DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-doxary}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-doxary}
+      DOXARY_DATABASE_URL: ${DOXARY_DATABASE_URL:?set DOXARY_DATABASE_URL}
       DOXARY_TEMPORARY_INPUT_ROOT: /var/lib/doxary/tmp
     command: ["python", "-m", "app.worker"]
     volumes:
       - doxary_temporary:/var/lib/doxary/tmp
-    networks: [doxary_internal]
+    networks: [doxary_internal, doxary_egress]
     depends_on:
       postgres: {condition: service_healthy}
     logging:
@@ -64,3 +64,5 @@ volumes:
 networks:
   doxary_internal:
     internal: true
+  doxary_egress:
+    driver: bridge

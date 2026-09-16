@@ -2,6 +2,8 @@
 
 Pydantic Settings loads an optional local `.env`; operating-system environment variables override it. `.env` is ignored, `.env.example` is safe to track, and production may rely exclusively on environment/secret management. Phase 2.4 adds explicit AI enablement, OpenAI API key, model, reasoning effort, and timeout settings. Enabling AI without a key is a startup configuration error.
 
+Staging Compose also requires `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD`. Supply `DOXARY_DATABASE_URL` explicitly using the Compose hostname `postgres`; credentials containing URL-reserved characters must be percent-encoded (or generated URL-safe) before insertion. This avoids fragile raw password interpolation.
+
 Worker defaults are poll interval 2 seconds, lease 300 seconds, maximum attempts 3, and retry delay 5 seconds. These are development/runtime defaults, not final production policy.
 
 `DOXARY_AI_MODEL` selects the runtime provider model; pricing is configured separately as versioned telemetry evidence and is not inferred from the model name. The OpenAI API key is runtime-only secret configuration and is never persisted or exposed. A model without a pricing snapshot still records usage with null estimated cost.

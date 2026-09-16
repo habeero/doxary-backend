@@ -6,7 +6,7 @@ The shared temporary volume is valid only while API and worker remain on one hos
 
 ## Configuration and migration
 
-Copy `.env.example` to ignored `.env`; set a strong `POSTGRES_PASSWORD` and the existing `DOXARY_*` settings. Keep `DOXARY_OPENAI_API_KEY` runtime-only; AI-disabled smoke tests are the default. In staging the database URL must address the Compose DNS name `postgres`. Never bake or print secrets.
+Copy `.env.example` to ignored `.env`; set `POSTGRES_DB`, `POSTGRES_USER`, and a strong `POSTGRES_PASSWORD`, plus the existing `DOXARY_*` settings. Set `DOXARY_DATABASE_URL` explicitly to the Compose DNS name `postgres`. Percent-encode any reserved characters in the URL user/password (or generate a URL-safe password); Compose does not safely URL-encode interpolated credentials. Keep `DOXARY_OPENAI_API_KEY` runtime-only; AI-disabled smoke tests are the default. Never bake or print secrets.
 
 ```powershell
 docker compose -f compose.staging.yml config
