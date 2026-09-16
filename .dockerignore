@@ -1,0 +1,13 @@
+.git
+.env
+.venv
+__pycache__
+*.py[cod]
+.pytest_cache
+.pytest-tmp*
+pytest-basetemp-*
+.doxary-tmp
+*.db
+.ruff_cache
+tests
+docs

@@ -1,5 +1,9 @@
 # Architecture
 
+## Deployment boundary (Phase 2.7a)
+
+Staging uses one shared application image for Gunicorn API and durable worker, PostgreSQL 16, an internal Compose network, and named PostgreSQL/temporary-input volumes. The API binds loopback port 8000 for a future host reverse proxy; PostgreSQL is internal-only. Redis, object storage, TLS, and remote provisioning remain deferred.
+
 ## Direction
 
 The intended implementation is a Python/Flask modular monolith with an application factory, `/api/v1` blueprints, PostgreSQL, SQLAlchemy, Alembic, typed request/response schemas, centralized configuration, typed errors, and structured privacy-safe logging. Dependencies are explicitly composed at bootstrap; no global service locator or magic injection is used.

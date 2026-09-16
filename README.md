@@ -6,7 +6,9 @@ This is the dedicated backend for Doxary, a local-first assistant that helps peo
 
 Start with [Product context](docs/PRODUCT_CONTEXT.md), then [Architecture](docs/ARCHITECTURE.md), [API contract](docs/API_CONTRACT.md), and [Decisions](docs/DECISIONS.md). Each concern has one authoritative document, listed in [Architecture](docs/ARCHITECTURE.md#documentation-authority).
 
-Phase 2.5 adds public read-only polling at `GET /api/v1/operations/{operation_id}`. Flutter integration remains deferred to Phase 2.6.
+Phase 2.5 adds public read-only polling at `GET /api/v1/operations/{operation_id}`. Phase 2.7a adds a one-host Docker Compose staging shape; Flutter integration remains deferred to Phase 2.6.
+
+See [staging deployment](docs/DEPLOYMENT.md) for build, migration, smoke-test, backup, and Germany-hosting requirements.
 
 ## Runtime and local development
 

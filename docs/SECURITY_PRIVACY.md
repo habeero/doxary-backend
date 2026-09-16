@@ -10,6 +10,8 @@ Document-analysis requests explicitly set `store=False`; this is an application 
 
 Public polling returns no provider/model/lease diagnostics and marks responses `private, no-store`. `AnalysisResult v1` is revalidated before delivery; missing or corrupt persisted results fail closed.
 
+The staging Compose shape keeps PostgreSQL off public host ports, runs application processes as a non-root image user, excludes `.env` from the image, and uses bounded Docker log rotation. Doxary-controlled volumes, backups, and customer-derived metadata logs must be hosted in Germany; this does not claim Germany-only OpenAI processing.
+
 The final Phase 2.4 live image smoke test completed without retaining raw provider output. It persisted the validated temporary result and usage event, then removed the local temporary input; provider-file cleanup was not applicable to the image path.
 
 ## Required controls

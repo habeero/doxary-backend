@@ -2,7 +2,9 @@
 
 Phase 2.4 implements opt-in OpenAI Responses analysis, versioned prompts, strict transport/domain validation, temporary provider telemetry, explicit `store=False`, and terminal temporary-input cleanup. Phase 2.5 still owns public operation polling and result delivery; Phase 2.6 owns Flutter integration. Pricing catalog/snapshot maintenance, user billing, credits, and monetization remain later operational/product work.
 
-Phase 2.5 public polling and temporary result delivery is implemented. Phase 2.6 remains Flutter integration; Phase 3 remains questions, bounded context, and reply drafts. Authentication/ownership, quotas/rate limiting, push delivery, cloud storage, and reanalysis remain deferred.
+Phase 2.5 public polling and temporary result delivery is implemented. Phase 2.6 remains Flutter integration; Phase 2.7a prepares one-host Docker Compose staging. Phase 3 remains questions, bounded context, and reply drafts. Authentication/ownership, quotas/rate limiting, push delivery, cloud storage, and reanalysis remain deferred.
+
+Phase 2.7b manually provisions/hardens Germany-hosted Hetzner Ubuntu; 2.7c installs Docker, reverse proxy, DNS, and HTTPS; 2.7d deploys the stack/secrets/migrations; 2.7e verifies operations and backup/restore; 2.7f connects Flutter and tests real devices. These phases remain deferred.
 
 - **Phase 0 — current:** authoritative architecture and documentation only.
 - **Phase 1 — Flask foundation:** implemented application factory, typed config, PostgreSQL-oriented SQLAlchemy/Alembic foundation, API v1 process health/error/correlation/log-redaction, operation/attempt/usage/idempotency persistence, provider-neutral AI interfaces, and tests. No real provider.

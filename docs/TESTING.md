@@ -24,3 +24,5 @@ Phase 1 tests cover factory configuration, process health, valid/invalid request
 Phase 2.1 adds contract tests for minimal complete/partial/unavailable results, empty and non-exclusive fact collections, Arabic and simple-German explanations, exact decimal amounts, evidence, uncertainty, quality reasons, malformed nested values, and schema version rejection. Persistence tests cover validated round trips, operation/result uniqueness, expiry, schema persistence, fail-closed corruption handling, and transaction ownership.
 
 Phase 2.5 API tests cover pending and terminal status delivery, repeated GET idempotency, safe failed responses, unknown operations, expiry (`410`), missing/corrupt results (fail closed), request correlation, and private no-store caching. These use portable persistence; PostgreSQL locking remains covered only by the live integration suite.
+
+Phase 2.7a adds Dockerfile/Compose static validation and a documented local smoke path using AI-disabled synthetic inputs. It must verify build, migration, liveness, shared temporary storage, PostgreSQL volume persistence, and clean restarts where Docker is available; it never makes a paid provider call.
