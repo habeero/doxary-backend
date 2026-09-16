@@ -6,9 +6,11 @@ The worker's claim transaction commits before executor/network work and a separa
 
 Provider boundary tests also map handcrafted complete, partial, and unavailable transport payloads through the production injection/validation helper, verify `store=False`, and verify failed provider responses retain usage/cost telemetry without creating results.
 
-Phase 2.4 live validation performed one synthetic image request through the production worker/provider path and verified successful Responses execution, `AnalysisResult v1`, result and usage persistence, and temporary-input cleanup. The configured model had no pricing snapshot, so cost was correctly unavailable. This paid smoke path is opt-in and is not part of normal pytest.
+Real staging validation performed a synthetic backend request through HTTPS/Caddy, multipart intake, PostgreSQL, the production worker/provider path, public polling, and terminal cleanup. The successful run verified Responses execution, `AnalysisResult v1`, `OperationResult`, `OperationAttempt`, `UsageEvent`, and removal of the temporary file. The configured model had no pricing snapshot, so cost was correctly unavailable. This paid smoke path is opt-in and is not part of normal pytest.
 
 Normal automated tests use fakes/fixtures, not live paid provider calls or real sensitive documents. Fixtures are synthetic or appropriately redacted.
+
+The latest portable baseline is 67 passed and 4 skipped; the focused provider/worker regression set is 29 passed. These counts exclude the opt-in paid staging smoke test and do not substitute for live PostgreSQL or deployment verification.
 
 - **Unit/application:** value behavior, normalization, lifecycle transitions, idempotency decisions, routing/prompt selection with fakes, no-fabrication and quality outcomes.
 - **Persistence/migrations:** SQLAlchemy repositories where introduced, constraints, operation/attempt/usage relationships, forward migrations, pricing snapshots, and concurrent future credit reservation.

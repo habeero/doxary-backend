@@ -54,19 +54,19 @@ Phase 2.5 exposes `GET /api/v1/operations/{operation_id}` as a read-only, idempo
 
 Provider structured output uses a transport schema weaker than Pydantic domain constraints. Doxary normalizes only enumerated date/time paths using documented, conservative ISO rules, then performs authoritative `AnalysisResult v1` validation. Ambiguous values fail closed; provider output and document-derived values are never logged.
 
-The second staging run subsequently identified the exact safe path/category as `required_documents[0].due_date:date_from_datetime_parsing`; the source value remains intentionally unknown. Diagnostics use compact path identifiers and representation metadata, bounded to the existing `VARCHAR(128)` contract.
+Staging validation identified date-representation failures at `deadlines[0].value`, `required_documents[0].due_date`, and `suggested_tasks[0].due_date`; the raw values remain intentionally unknown. A later run proved the `deadlines[0].value` provider value was a non-ISO string without timezone, without retaining it. Diagnostics use compact path identifiers and representation metadata, bounded to the existing `VARCHAR(128)` contract; PostgreSQL staging proved the original `structured_output_invalid` category persists without overflow conversion.
 
 ### D-013 - One-host Compose staging topology
 
-Phase 2.7a prepares one Ubuntu host with API and worker sharing one image, PostgreSQL 16, an internal Compose network, and named PostgreSQL/temporary-input volumes. The API binds loopback port 8000 for a future host reverse proxy. Shared local temporary storage is an MVP constraint; split hosts, horizontal scaling, non-shared disks, or stronger durability trigger object-storage evaluation. No remote provisioning, TLS, Redis, or object storage is included.
+Phase 2.7a stages one Germany-hosted Ubuntu host with API and worker sharing one image, PostgreSQL 16.4, `doxary_internal` plus an outbound-capable application network, named PostgreSQL/temporary-input volumes, and a root `temporary-init` service that prepares UID/GID `100:101` ownership. Caddy terminates HTTPS at `https://dox-api.habeero.de` and proxies to loopback `127.0.0.1:8000`; PostgreSQL and worker ports are not public. Shared local temporary storage is an MVP constraint; split hosts, horizontal scaling, non-shared disks, or stronger durability trigger object-storage evaluation. Production hardening, backup/restore, Flutter E2E, and provider privacy review remain open.
 
 ## Open questions (intentionally unresolved)
 
-- Initial provider and exact model/configuration; regional/provider processing terms.
+- Regional/provider processing terms and any additional provider/model routing.
 - Production upload/file/page/request limits and malware-scanning approach.
 - Temporary-file and follow-up-context retention durations and backup/deletion policy.
 - Anonymous/device-scoped abuse-control mechanism and thresholds.
 - Pricing, free allowance, entitlement sources, and any reward-credit economics.
-- Hosting/runtime platform, data residency, and operational deployment design.
+- Production hosting/runtime platform, data residency, and operational deployment design; staging is verified on a Germany-hosted Hetzner Ubuntu host.
 - Exact legal/privacy disclosures, lawful basis, DPA/DPIA conclusions.
 - Whether/when a non-sensitive capabilities endpoint is needed by Flutter.

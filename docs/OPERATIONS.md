@@ -10,13 +10,15 @@ An **attempt** is a provider-facing execution within an operation. One logical o
 
 Phase 1 persists these lifecycle values and their timestamps without exposing an operation API or executing work. The domain transition model permits only `accepted -> processing/cancelled/expired` and `processing -> succeeded/partial/failed/cancelled/expired`. An attempt table has a unique positive ordinal per operation; it does not imply a provider was called.
 
-Phase 2.1 adds `OperationResult` as a temporary, operation-linked delivery record for a validated `AnalysisResult`. It has its own opaque ID, explicit schema version, created/expiry timestamps, optional deletion timestamp, and one-result-per-operation invariant. It is not a Document, Flutter’s durable analysis history, uploaded content, or FollowUpContext. Expired/deleted results are not returned; a cleanup worker is intentionally deferred.
+Phase 2.1 adds `OperationResult` as a temporary, operation-linked delivery record for a validated `AnalysisResult`. It has its own opaque ID, explicit schema version, created/expiry timestamps, optional deletion timestamp, and one-result-per-operation invariant. It is not a Document, Flutter’s durable analysis history, uploaded content, or FollowUpContext. Expired/deleted results are not returned; broader scheduled result-retention cleanup remains an operational follow-up.
 
-Phase 2.2 submission creates an accepted `document_analysis` operation only after request validation and temporary storage succeed. It records a one-to-one `temporary_inputs` metadata row and returns `202`; no worker has started and no analysis result is fabricated. Phase 2.3 will add the PostgreSQL-backed worker to claim accepted operations, load input through `TemporaryDocumentStore`, execute the workflow, persist attempts, and eventually produce `OperationResult`. Phase 2.4 will add provider execution, structured output, prompts, and usage capture.
+Phase 2.2 submission creates an accepted `document_analysis` operation only after request validation and temporary storage succeed. It records a one-to-one `temporary_inputs` metadata row and returns `202`; no analysis result is fabricated. The implemented Phase 2.3 worker claims accepted operations through PostgreSQL leases, and Phase 2.4 executes the configured provider workflow, validates structured output, persists attempts/usage/results, and cleans up temporary input according to terminal/retry policy.
 
 ## Phase 2.3 worker
 
 The worker claims accepted document-analysis operations with PostgreSQL row locking, records bounded attempts and a worker lease, and executes outside the transaction. Retryable technical failures return to `accepted` after a configured delay; non-retryable or exhausted failures become `failed`. Missing or expired storage is `missing_temporary_input`, never a document-quality result. No provider, result, or usage event is fabricated.
+
+This worker path was verified on staging through the public HTTPS endpoint and PostgreSQL: a successful synthetic analysis persisted `OperationResult`, `OperationAttempt`, and `UsageEvent`, then removed the temporary file. The API and worker share a named temporary volume initialized by the Compose `temporary-init` service.
 
 ## Quality versus infrastructure outcomes
 

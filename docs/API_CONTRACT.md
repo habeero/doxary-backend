@@ -16,19 +16,19 @@ Future HTTP APIs are versioned under `/api/v1`. JSON uses `lower_snake_case`; ex
 
 | Endpoint | Directional contract |
 |---|---|
-| `GET /health` | Minimal liveness/readiness response; no sensitive diagnostics. |
-| `POST /documents/analyze` | Multipart logical-document upload: required client ID, language/style preference, ordered file/page parts, and `Idempotency-Key`; returns `202` operation. |
+| `GET /health` | Minimal process-liveness response; no sensitive diagnostics. |
+| `POST /document-analyses` | Multipart logical-document upload: required client ID, language/style preference, ordered file/page parts, and `Idempotency-Key`; returns `202` operation. |
 | `GET /operations/{operation_id}` | Returns status and, on terminal success/partial state, validated product result. |
 | `POST /assistant/questions` | Takes minimum client-scoped context plus question; returns validated answer or operation. |
 | `POST /assistant/reply-drafts` | Takes scoped context and drafting intent; returns validated German draft or operation. |
 | `DELETE /follow-up-contexts/{follow_up_context_id}` | Explicitly deletes retained follow-up context; idempotent deletion semantics to be specified. |
 | `GET /capabilities` | Optional, non-sensitive enabled capability/schema information; only add when Flutter needs runtime negotiation. |
 
-The future analysis flow is `POST /api/v1/documents/analyze` → `202 Accepted` with `operation_id` → `GET /api/v1/operations/{operation_id}` for status and a validated temporary result. This route naming follows the Phase 1 contract; no analysis endpoint is implemented in Phase 2.1. One logical Document may contain one PDF or ordered images. `client_document_id` correlates to Flutter and is never a server Document identity. Upload validation/details arrive in Phase 2.2, worker execution in Phase 2.3, and provider execution in Phase 2.4.
+The analysis flow is `POST /api/v1/document-analyses` → `202 Accepted` with `operation_id` → `GET /api/v1/operations/{operation_id}` for status and a validated temporary result. One logical Document may contain one PDF or ordered images. `client_document_id` correlates to Flutter and is never a server Document identity. Upload validation, worker execution, provider execution, and public delivery are implemented in Phases 2.2 through 2.5; the staging path has been exercised end-to-end.
 
 Analysis accepts one image, multiple ordered images/pages, or one PDF as a logical Document. It must validate allowed MIME and practical file signature/content, declared/actual size, request size, page/file count, malformed/corrupt input, safe generated filenames, and bounded temporary lifecycle. Exact production limits are configuration policy and intentionally unset in Phase 0. Filename extensions alone are never trusted.
 
-Phase 1 implements only `GET /api/v1/health`, returning `{ "status": "ok", "request_id": "..." }`. Phase 2.2 adds only `POST /api/v1/document-analyses`; it returns `202 {operation_id,status,request_id}` and does not return analysis. Health is a process-liveness check and deliberately does not assert database readiness. Every current API response returns `X-Request-ID`; an incoming UUID-shaped value in that header is preserved, otherwise the request adapter generates an opaque UUID.
+Phase 1 implemented `GET /api/v1/health`, returning `{ "status": "ok", "request_id": "..." }`. Phase 2.2 adds `POST /api/v1/document-analyses`, returning `202 {operation_id,status,request_id}` without analysis; Phase 2.5 adds `GET /api/v1/operations/{operation_id}` for status/result delivery. Health is a process-liveness check and deliberately does not assert database readiness. Every current API response returns `X-Request-ID`; an incoming UUID-shaped value in that header is preserved, otherwise the request adapter generates an opaque UUID.
 
 The Phase 2.2 multipart contract uses repeated `files` parts plus required text fields `client_document_id`, `output_language` (`ar` or `de`), `output_style` (`standard`, or `simple` for German), and `input_kind` (`pdf` or `images`). Image submissions additionally provide repeated `page_indexes`, one per file, contiguous from zero. A PDF submission has exactly one file and no page indexes. Files are validated by signatures, not just headers/extensions. The response never exposes a filesystem path or fake result.
 

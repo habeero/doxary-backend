@@ -2,13 +2,13 @@
 
 ## Deployment boundary (Phase 2.7a)
 
-Staging uses one shared application image for Gunicorn API and durable worker, PostgreSQL 16, an internal Compose network, and named PostgreSQL/temporary-input volumes. The API binds loopback port 8000 for a future host reverse proxy; PostgreSQL is internal-only. Redis, object storage, TLS, and remote provisioning remain deferred.
+Staging uses one shared application image for Gunicorn API and durable worker, PostgreSQL 16.4, an internal Compose network plus an outbound-capable network for API/worker provider access, and named PostgreSQL/temporary-input volumes. Caddy terminates public HTTPS at `https://dox-api.habeero.de` and proxies to the API's host-loopback binding `127.0.0.1:8000`; PostgreSQL and the worker have no public host ports. Redis, object storage, and remote provisioning remain deferred.
 
 ## Direction
 
 The intended implementation is a Python/Flask modular monolith with an application factory, `/api/v1` blueprints, PostgreSQL, SQLAlchemy, Alembic, typed request/response schemas, centralized configuration, typed errors, and structured privacy-safe logging. Dependencies are explicitly composed at bootstrap; no global service locator or magic injection is used.
 
-Phase 1 implements this foundation under `app/`. Phase 2.1 adds typed analysis/result boundaries; Phase 2.2 adds `intake/` application/domain ports and local storage/metadata adapters. `bootstrap/app_factory.py` creates an isolated app and invokes the explicit `Container` composition function; imports alone do not create engines or connections. `operations` has domain models, persistence ports, and focused SQLAlchemy adapters. Usage, idempotency, and temporary-input metadata are infrastructure-only persistence concerns, so they do not receive ceremonial domain layers. `ai/ports.py` supplies provider-neutral protocols only.
+Phase 1 implements this foundation under `app/`. Phase 2.1 adds typed analysis/result boundaries; Phase 2.2 adds `intake/` application/domain ports and local storage/metadata adapters; Phase 2.3 adds the durable worker; Phase 2.4 adds the OpenAI adapter; and Phase 2.5 adds public operation delivery. `bootstrap/app_factory.py` creates an isolated app and invokes the explicit `Container` composition function; imports alone do not create engines or connections. `operations` has domain models, persistence ports, and focused SQLAlchemy adapters. Usage, idempotency, and temporary-input metadata are infrastructure-only persistence concerns, so they do not receive ceremonial domain layers. `ai/ports.py` supplies provider-neutral protocols only.
 
 The directional shape is:
 

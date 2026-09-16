@@ -7,7 +7,7 @@ AI is an infrastructure capability behind application-facing responsibilities eq
 - **PromptRegistry:** resolves immutable versioned prompt definitions.
 - **StructuredOutputValidator:** validates provider output against the product schema, semantic rules, compatibility, uncertainty rules, and evidence constraints before it becomes Doxary data.
 
-Provider-specific SDK types, concrete model names, request/response formats, and credentials remain infrastructure/configuration. Domain/application code does not import them. The initial anticipated provider does not constitute an implementation or commitment in this phase.
+Provider-specific SDK types, concrete model names, request/response formats, and credentials remain infrastructure/configuration. Domain/application code does not import them. OpenAI is the current implemented provider adapter; additional providers remain a future routing decision.
 
 ## Phase 2.4 provider adapter
 
@@ -17,7 +17,7 @@ Provider failures retain only bounded technical diagnostics on the operation att
 
 Document-analysis Responses requests explicitly set `store=False`. Usage and latency are captured for every provider response before Doxary mapping; mapping or domain-validation failure still records a failed `UsageEvent` and cost when pricing is known, but never creates an `OperationResult`.
 
-The live Phase 2.4 image smoke verification succeeded through Responses, strict transport output, backend injection, `AnalysisResult v1`, `OperationResult`, `UsageEvent`, and local cleanup. Provider-file cleanup was not applicable because the verified path used an image rather than an uploaded PDF. Cost was unavailable because `gpt-5.6-luna` has no configured pricing snapshot.
+The fourth real staging verification (synthetic one-page PDF) succeeded through HTTPS/Caddy, multipart intake, PostgreSQL, the worker, Responses, strict transport output, backend injection, `AnalysisResult v1`, `OperationResult`, `UsageEvent`, public result delivery, and local cleanup. The configured staging model was `gpt-5.6-luna`; provider-file cleanup was not applicable to the verified image smoke path, and cost was unavailable because that model has no configured pricing snapshot.
 
 The provider transport schema contains model-generated fields only. Doxary injects server-owned `client_document_id` and `schema_version`; `AnalysisResult v1` remains authoritative. Model selection is runtime-configurable and separate from pricing snapshots. An unpriced model still records usage, but estimated cost is null—Doxary never fabricates a price.
 

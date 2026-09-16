@@ -12,4 +12,4 @@ One logical local Document can be one image, multiple ordered images/pages, or o
 
 ## Explicit non-goals
 
-Phase 1 and 2.1 implement the backend foundation plus the provider-neutral validated analysis contract and temporary result delivery persistence. Uploads, workers, and providers remain deferred to later Phase 2 increments. The backend is not a generic Habeero platform, multi-tenant application registry, microservice suite, account system, sync service, permanent cloud-file store, billing system, or provider integration.
+Phases 1 through 2.5 implement the backend foundation, temporary upload/worker/provider path, provider-neutral validated analysis contract, temporary result persistence, and public operation delivery. Flutter remains the durable product owner and Flutter-to-staging integration is still pending. The backend is not a generic Habeero platform, multi-tenant application registry, microservice suite, account system, sync service, permanent cloud-file store, billing system, or unrestricted provider integration.

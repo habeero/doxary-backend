@@ -1,8 +1,10 @@
 # Staging deployment (Phase 2.7a)
 
-One Ubuntu host in Germany runs `postgres` (PostgreSQL 16), `api` (Gunicorn), and `worker` (`python -m app.worker`) from one application image. Compose uses an internal network, named `doxary_postgres` and `doxary_temporary` volumes, and binds API port `127.0.0.1:8000` for a future host-level reverse proxy. PostgreSQL is not publicly exposed; TLS, DNS, and proxy installation are deferred.
+One Ubuntu host in Germany runs `postgres` (PostgreSQL 16.4), `api` (Gunicorn), and `worker` (`python -m app.worker`) from one application image. Compose uses `doxary_internal` for private database traffic and a separate outbound-capable network for API/worker provider access, plus named `doxary_postgres` and `doxary_temporary` volumes. Caddy terminates public HTTPS and proxies `https://dox-api.habeero.de` to the API's host-loopback binding `127.0.0.1:8000`. PostgreSQL and the worker have no public host ports.
 
 The current staging endpoint is `https://dox-api.habeero.de`; it is a staging deployment address, not automatically the permanent production API contract.
+
+The verified backend E2E used a synthetic document and completed through Caddy, Gunicorn/Flask, multipart intake, PostgreSQL, the worker, OpenAI Responses, structured-result validation, public polling/result delivery, and terminal cleanup. `OperationResult`, `OperationAttempt`, and `UsageEvent` were persisted; the temporary database lifecycle row was marked deleted and the file was absent from `/var/lib/doxary/tmp`. The configured staging model was `gpt-5.6-luna`; usage was recorded and cost remained unavailable because no pricing snapshot exists for that model.
 
 The shared temporary volume is valid only while API and worker remain on one host. A one-shot `temporary-init` Compose service runs as root, creates `/var/lib/doxary/tmp`, and idempotently assigns UID/GID `100:101`; API and worker depend on its successful completion and remain non-root. Split hosts, horizontal scaling, non-shared disks, or stronger durability trigger object-storage evaluation. Temporary files remain bounded and are deleted by existing expiry/terminal cleanup; they are not permanent storage.
 
@@ -38,4 +40,4 @@ Get-Content doxary-staging.sql | docker compose -f compose.staging.yml exec -T p
 
 Restore requires explicit operator confirmation of the target database; do not automate destructive restore. Temporary documents are generally not backup data.
 
-Phase 2.7b manually provisions/hardens Hetzner Ubuntu in Germany; 2.7c installs proxy/DNS/HTTPS; 2.7d deploys this stack and secrets; 2.7e performs operational/backup verification; 2.7f connects Flutter. None is implemented here.
+The current one-host staging deployment and Caddy HTTPS path have been exercised, including migration, health, temporary-input cleanup, and a real backend analysis flow. Remaining production work includes comprehensive backup/restore verification, production-domain and secret decisions, host hardening, abuse controls, provider privacy review, and Flutter-to-staging validation. This document describes the reproducible Compose shape; it is not a claim that the system is production-ready.

@@ -1,10 +1,10 @@
 # Backend roadmap
 
-Phase 2.4 implements opt-in OpenAI Responses analysis, versioned prompts, strict transport/domain validation, temporary provider telemetry, explicit `store=False`, and terminal temporary-input cleanup. Phase 2.5 still owns public operation polling and result delivery; Phase 2.6 owns Flutter integration. Pricing catalog/snapshot maintenance, user billing, credits, and monetization remain later operational/product work.
+Phases 2.4 and 2.5 are implemented: opt-in OpenAI Responses analysis, versioned prompts, strict transport/domain validation, temporary provider telemetry, explicit `store=False`, terminal temporary-input cleanup, and public operation polling/result delivery. Phase 2.6 remains Flutter integration. Pricing catalog/snapshot maintenance, user billing, credits, and monetization remain later operational/product work.
 
-Phase 2.5 public polling and temporary result delivery is implemented. Phase 2.6 remains Flutter integration; Phase 2.7a prepares one-host Docker Compose staging. Phase 3 remains questions, bounded context, and reply drafts. Authentication/ownership, quotas/rate limiting, push delivery, cloud storage, and reanalysis remain deferred.
+Phase 2.5 public polling and temporary result delivery is implemented. A one-host Phase 2.7 staging deployment is live and has passed backend synthetic E2E validation; Phase 2.6 remains Flutter integration. Phase 3 remains questions, bounded context, and reply drafts. Authentication/ownership, quotas/rate limiting, push delivery, cloud storage, and reanalysis remain deferred.
 
-Phase 2.7b manually provisions/hardens Germany-hosted Hetzner Ubuntu; 2.7c installs Docker, reverse proxy, DNS, and HTTPS; 2.7d deploys the stack/secrets/migrations; 2.7e verifies operations and backup/restore; 2.7f connects Flutter and tests real devices. These phases remain deferred.
+The verified Phase 2.7 staging slice includes a Germany-hosted Hetzner Ubuntu host, Docker Compose, Caddy HTTPS, non-public PostgreSQL/worker networking, temporary-volume initialization, migrations, health checks, and a successful real backend AI E2E. Production readiness remains pending Flutter-to-staging E2E, comprehensive backups and tested restore, production domain/configuration, host hardening, abuse controls, Caddy/access-log privacy review, provider privacy/data-processing review, pricing/cost policy, and final staging-to-production checks.
 
 - **Phase 0 — current:** authoritative architecture and documentation only.
 - **Phase 1 — Flask foundation:** implemented application factory, typed config, PostgreSQL-oriented SQLAlchemy/Alembic foundation, API v1 process health/error/correlation/log-redaction, operation/attempt/usage/idempotency persistence, provider-neutral AI interfaces, and tests. No real provider.
@@ -20,7 +20,7 @@ No dates or hosting platform are promised.
 ## Cross-project Phase 2 delivery sequence
 
 - **Phase 2.6 â€” Flutter integration:** Flutter owns the real-client upload, polling, result mapping, and local persistence path; the backend contract remains stable. Local end-to-end validation is required before deployment.
-- **Phase 2.7 â€” Staging deployment (deferred):** production-like PostgreSQL, web/API and worker processes, HTTPS, runtime secrets, shared temporary storage strategy, migrations, logging/health/readiness, rollback, and deployment documentation.
+- **Phase 2.7 — Staging deployment (partially verified):** the one-host Compose deployment, Caddy HTTPS endpoint, private database/worker networking, temporary-volume initialization, migrations, health, and backend AI E2E are verified. Flutter-to-staging validation, backup/restore, production configuration, hardening, abuse controls, provider privacy review, pricing policy, and final operational checks remain pending.
 - **Phase 2.8 â€” Real-device and beta testing (deferred):** developer real-phone testing, then 2-3 informed trusted testers and later a broader closed beta, collecting quality, cost, latency, and failure evidence without adding document-content telemetry.
 - **Phase 2.9 â€” Beta hardening/release preparation (deferred):** observed-failure fixes, privacy/disclosure review, operational limits, monitoring, release checklist, and Play testing/release readiness.
 - **Phase 3 â€” Document-scoped assistant (deferred):** questions, bounded `FollowUpContext`, and German reply drafting.
