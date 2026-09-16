@@ -46,6 +46,10 @@ Phase 2.4 keeps provider execution behind the worker executor boundary. OpenAI i
 
 Document-analysis Responses requests set `store=False`. The provider transport schema contains model-generated fields only; Doxary injects server-owned `client_document_id` and `schema_version` before validating its authoritative `AnalysisResult v1` contract. Usage/latency and known Decimal cost are recorded even when post-response mapping fails. Unpriced models retain usage with null cost rather than fabricated pricing; pricing snapshots are immutable telemetry evidence, not billing.
 
+### D-012 — Public operation polling and temporary result delivery
+
+Phase 2.5 exposes `GET /api/v1/operations/{operation_id}` as a read-only, idempotent v1 resource. It maps internal states to four public statuses, returns only revalidated `AnalysisResult v1` on success, uses provider-neutral failures, and fails closed for missing/corrupt or expired results. Responses are private and `no-store`; authentication, ownership, quotas, rate limiting, push delivery, and regeneration remain deferred.
+
 ## Open questions (intentionally unresolved)
 
 - Initial provider and exact model/configuration; regional/provider processing terms.

@@ -6,6 +6,8 @@ This is the dedicated backend for Doxary, a local-first assistant that helps peo
 
 Start with [Product context](docs/PRODUCT_CONTEXT.md), then [Architecture](docs/ARCHITECTURE.md), [API contract](docs/API_CONTRACT.md), and [Decisions](docs/DECISIONS.md). Each concern has one authoritative document, listed in [Architecture](docs/ARCHITECTURE.md#documentation-authority).
 
+Phase 2.5 adds public read-only polling at `GET /api/v1/operations/{operation_id}`. Flutter integration remains deferred to Phase 2.6.
+
 ## Runtime and local development
 
 The supported Python range is 3.12 through 3.14. PostgreSQL is the production database target; normal tests use SQLite only for fast generic persistence checks. Install the project and development tools with:

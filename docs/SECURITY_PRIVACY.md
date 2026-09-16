@@ -8,6 +8,8 @@ When explicitly enabled, the worker sends a temporary Doxary PDF or ordered imag
 
 Document-analysis requests explicitly set `store=False`; this is an application privacy control, not a claim of GDPR compliance.
 
+Public polling returns no provider/model/lease diagnostics and marks responses `private, no-store`. `AnalysisResult v1` is revalidated before delivery; missing or corrupt persisted results fail closed.
+
 The final Phase 2.4 live image smoke test completed without retaining raw provider output. It persisted the validated temporary result and usage event, then removed the local temporary input; provider-file cleanup was not applicable to the image path.
 
 ## Required controls

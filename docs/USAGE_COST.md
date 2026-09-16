@@ -10,4 +10,6 @@ Phase 1 uses the smallest viable immutable-evidence approach: each append-only `
 
 Phase 2.4 represents those price inputs as an immutable, versioned `PricingSnapshot` and uses exact `Decimal` arithmetic. Historical event costs are never recalculated from later pricing changes. Pricing is telemetry for operational economics, not user billing. Provider usage is still recorded when a configured model has no snapshot; its estimated cost remains null and Doxary never fabricates a price. The currently configured `gpt-5.6-luna` model has no Doxary pricing snapshot. Pricing catalog and snapshot maintenance remain future operational work, separate from runtime model selection.
 
+Usage and latency are captured when the provider returns usage, including when later Doxary mapping/validation fails. `OperationResult` is written only after a valid `AnalysisResult`; a failed post-response attempt may still have a `UsageEvent`.
+
 The ledger is distinct from quota/entitlement state. Future quota access must atomically reserve, consume, or release permission around an operation so concurrent requests cannot both spend the last credit. Potential sources—monthly allowance, reward, paid entitlement, promotion, admin/test credit—are policy concepts, not Phase 0 implementation; an ad is not permanently one analysis.

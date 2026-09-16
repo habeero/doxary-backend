@@ -32,6 +32,10 @@ Input/document quality is a valid product result: `partial` or `unavailable` wit
 
 ## Follow-up context
 
+## Phase 2.5 public delivery
+
+`GET /api/v1/operations/{operation_id}` maps internal lease, retry, and provider details to the stable four-state public contract. It never starts work or consumes a result. `succeeded` returns a revalidated `AnalysisResult v1`; pending states have no result; failures expose only a provider-neutral category. Expired/deleted results return `410`; missing or corrupt results fail closed. Responses are private and non-cacheable.
+
 A later `follow_up_context_id` may reference a minimal cache of validated structured analysis, concise follow-up summary, selected evidence snippets, version, created/expiry timestamps, and deletion state. It excludes original PDFs/images, is not permanent Document storage, has configurable bounded retention, expires automatically, can be explicitly deleted, and must be excluded from ordinary logs/analytics.
 
 Temporary input, OperationResult, and FollowUpContext are three separate lifecycles: original pending-analysis copies, validated result delivery, and later minimized assistant context respectively.

@@ -34,6 +34,10 @@ The Phase 2.2 multipart contract uses repeated `files` parts plus required text 
 
 ## Operation response, idempotency, and errors
 
+### Public operation status (Phase 2.5)
+
+`GET /api/v1/operations/{operation_id}` is an idempotent read-only resource. It returns public statuses `accepted`, `processing`, `succeeded`, or `failed`; pending responses have `result: null`. Success contains only a revalidated `AnalysisResult v1`; failure contains only a provider-neutral code. Unknown operations use typed `404 operation_not_found`; expired/deleted results use `410 operation_expired`; missing or corrupt results fail closed with a safe `500`. Responses are `Cache-Control: private, no-store` and retain `X-Request-ID`.
+
 `POST /documents/analyze` is asynchronous by default: `202 {operation_id, status, request_id}`. Polling returns operation lifecycle status and an analysis envelope only when available. The client supplies a high-entropy `Idempotency-Key` for costly/mutating operations. Scope it by caller/device abuse-control scope plus route; bind it to a canonical request fingerprint; persist its result/operation for a configurable bounded replay window. A key reused for materially different input is rejected. It is not a document ID or request ID.
 
 All errors use:
