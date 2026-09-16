@@ -10,6 +10,7 @@ from time import monotonic
 from app.ai.ports import AIPurpose
 from app.ai.prompts import StaticPromptRegistry
 from app.analysis.contracts import SCHEMA_VERSION, AnalysisResult
+from app.core.errors.diagnostics import bound_diagnostic
 from app.intake.domain.input import DocumentInput, InputKind
 from app.worker.runtime import ExecutionOutcome
 
@@ -105,7 +106,9 @@ class OpenAIAnalysisExecutor:
             try:
                 result = _parse_transport_result(response.output_text, document)
             except Exception as error:
-                diagnostic = _safe_validation_diagnostic(error)
+                diagnostic = getattr(
+                    error, "_doxary_diagnostic", None
+                ) or _safe_validation_diagnostic(error)
                 log.warning(
                     "openai structured output failed Doxary validation",
                     extra={
@@ -239,11 +242,16 @@ def _parse_transport_result(output_text: str, document: DocumentInput) -> Analys
     payload = json.loads(output_text)
     if not isinstance(payload, dict):
         raise ValueError("structured response must be an object")
+    raw_payload = payload
     payload = _normalize_transport_values(payload)
     # Product correlation is server-owned; it need not be disclosed to the provider.
     payload["client_document_id"] = document.client_document_id
     payload["schema_version"] = SCHEMA_VERSION
-    return AnalysisResult.model_validate(payload)
+    try:
+        return AnalysisResult.model_validate(payload)
+    except Exception as error:
+        error._doxary_diagnostic = _safe_validation_diagnostic(error, raw_payload)
+        raise
 
 
 def _normalize_transport_values(payload: dict) -> dict:
@@ -329,7 +337,7 @@ def _normalize_time(value):
     return parsed
 
 
-def _safe_validation_diagnostic(error: Exception) -> str:
+def _safe_validation_diagnostic(error: Exception, payload: dict | None = None) -> str:
     """Validation exception class only; validation inputs may contain document-derived text."""
     diagnostic = f"exception={type(error).__name__}"
     errors = getattr(error, "errors", None)
@@ -338,10 +346,43 @@ def _safe_validation_diagnostic(error: Exception) -> str:
         for issue in errors()[:6]:
             location = ".".join(str(part) for part in issue.get("loc", ()))
             category = str(issue.get("type", "invalid"))
-            safe_issues.append(f"{location}:{category}")
+            metadata = (
+                _safe_representation_metadata(payload, issue.get("loc", ())) if payload else ""
+            )
+            safe_issues.append(f"{location}:{category}{metadata}")
         if safe_issues:
             diagnostic += ",issues=" + "|".join(safe_issues)
-    return diagnostic[:256]
+    return bound_diagnostic(diagnostic) or "exception=unknown"
+
+
+def _safe_representation_metadata(payload: dict, location) -> str:
+    value = payload
+    try:
+        for part in location:
+            value = value[part] if isinstance(value, (dict, list)) else None
+    except (KeyError, IndexError, TypeError):
+        value = None
+    if isinstance(value, str):
+        iso_date = False
+        iso_datetime = False
+        timezone = False
+        midnight = False
+        try:
+            date.fromisoformat(value)
+            iso_date = True
+        except ValueError:
+            try:
+                parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+                iso_datetime = True
+                timezone = parsed.tzinfo is not None
+                midnight = parsed.time() == time.min
+            except ValueError:
+                pass
+        return (
+            f"[type=str,date={int(iso_date)},datetime={int(iso_datetime)},"
+            f"tz={int(timezone)},midnight={int(midnight)}]"
+        )
+    return f"[type={type(value).__name__}]"
 
 
 def _cached_tokens(usage) -> int | None:

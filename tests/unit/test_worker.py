@@ -169,6 +169,22 @@ def test_failure_diagnostic_is_retained_without_provider_payload():
     assert state(f)[1][0].retry_reason == "status_code=400"
 
 
+def test_long_failure_diagnostic_is_bounded_before_attempt_persistence():
+    f = fixture()
+    diagnostic = "exception=ValidationError,issues=" + "|".join(
+        f"extracted_facts.required_documents.{index}.due_date:date_from_datetime_parsing"
+        for index in range(6)
+    )
+    outcome = ExecutionOutcome(
+        "failure", "structured_output_invalid", False, failure_diagnostic=diagnostic
+    )
+    AnalysisWorker(f, Store(), Executor(outcome), max_attempts=1).run_once()
+    with f() as session:
+        attempt = session.query(OperationAttemptRecord).one()
+        assert attempt.failure_code == "structured_output_invalid"
+        assert attempt.retry_reason is not None and len(attempt.retry_reason) <= 128
+
+
 def test_provider_usage_is_persisted_when_result_mapping_fails():
     f = fixture()
     usage = type("Usage", (), {"input_tokens": 12, "output_tokens": 5})()

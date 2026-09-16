@@ -230,3 +230,19 @@ def test_timezone_bearing_date_and_time_are_not_silently_reinterpreted():
     }
     with pytest.raises(ValueError):
         _parse_transport_result(json.dumps(payload), _document())
+
+
+def test_date_datetime_diagnostic_reports_shape_without_value():
+    payload = _result().model_dump()
+    payload.pop("client_document_id")
+    payload["extracted_facts"] = {
+        "deadlines": [{"description": "Reply", "value": "30/09/2026"}],
+        "required_documents": [{"description": "Passport", "due_date": "30/09/2026"}],
+        "suggested_tasks": [{"title": "Reply", "due_date": "30/09/2026"}],
+    }
+    with pytest.raises(ValidationError) as captured:
+        _parse_transport_result(json.dumps(payload), _document())
+    diagnostic = captured.value._doxary_diagnostic
+    assert "extracted_facts.deadlines.0.value" in diagnostic
+    assert "type=str" in diagnostic
+    assert "30/09/2026" not in diagnostic

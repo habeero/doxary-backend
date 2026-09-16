@@ -8,6 +8,7 @@ from typing import Protocol
 
 from sqlalchemy import or_, select
 
+from app.core.errors.diagnostics import bound_diagnostic
 from app.core.time import as_utc, utc_now
 from app.intake.application.temporary_store import TemporaryDocumentStore
 from app.intake.domain.input import DocumentInput
@@ -178,7 +179,7 @@ class AnalysisWorker:
             attempt.completed_at = now
             attempt.outcome = "succeeded" if outcome.kind == "success" else "failed"
             attempt.failure_code = outcome.failure_code
-            attempt.retry_reason = outcome.failure_diagnostic
+            attempt.retry_reason = bound_diagnostic(outcome.failure_diagnostic)
             attempt.provider_id = outcome.provider_id
             attempt.model_config_id = outcome.model_config_id
             attempt.prompt_id = outcome.prompt_id
