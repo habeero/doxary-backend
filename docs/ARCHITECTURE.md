@@ -4,6 +4,8 @@
 
 The intended implementation is a Python/Flask modular monolith with an application factory, `/api/v1` blueprints, PostgreSQL, SQLAlchemy, Alembic, typed request/response schemas, centralized configuration, typed errors, and structured privacy-safe logging. Dependencies are explicitly composed at bootstrap; no global service locator or magic injection is used.
 
+Phase 1 implements this foundation under `app/`. `bootstrap/app_factory.py` creates an isolated app and invokes the explicit `Container` composition function; imports alone do not create engines or connections. `operations` has a domain model, persistence port, and focused SQLAlchemy adapter. Usage and idempotency are infrastructure-only persistence concerns in this phase, so they do not receive ceremonial domain layers. `ai/ports.py` supplies provider-neutral protocols only.
+
 The directional shape is:
 
 ```text
@@ -51,3 +53,5 @@ Provider adapters live in AI infrastructure. Model routing, prompt selection, an
 ## Transactions
 
 An application workflow owns a meaningful transaction. Repositories stage reads/writes but do not commit independently. Never hold a database transaction during a long provider call: accept/idempotently create an operation and commit; process externally; then open a short transaction to record the attempt/result/terminal state. Recovery must be safe if a worker crashes between steps. A heavyweight Unit of Work abstraction is not mandated unless several workflows prove the need.
+
+The Phase 1 SQLAlchemy repository and usage ledger intentionally call `Session.add` only. Their caller opens/commits/rolls back the transaction; no provider execution exists yet.

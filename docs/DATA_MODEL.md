@@ -19,4 +19,6 @@ This model covers server responsibilities only. It deliberately does **not** con
 
 Operation status is separate from local Document state. Attempts make retries/fallbacks auditable without exposing multiple attempts as multiple user operations. Usage is append-oriented: corrections are compensating records, not destructive rewrites. Pricing snapshots/version identifiers are stored on every event so historical totals do not change when pricing configuration changes.
 
-Schema migrations will be forward-only and reviewable. The table list is a Phase 0 design, not a created database schema.
+Phase 1 creates the first four tables in forward migration `20260916_0001`. `operations.operation_id`, attempt IDs, usage event IDs, and idempotency IDs are opaque UUID values rather than sequential public keys. `operation_attempts` enforces unique positive `attempt_number` per operation. `idempotency_records` enforces unique `(scope, key_hash)` and carries an indexed expiry. All relations are to backend operation/attempt rows only, never Flutter product tables.
+
+`usage_events.cost_amount` is `NUMERIC(20, 8)`, never binary floating point. Each event stores a canonical, immutable `pricing_snapshot_json` with the actual price inputs used for its calculation; mutable current pricing configuration is not required to interpret historical cost.

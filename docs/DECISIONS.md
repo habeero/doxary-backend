@@ -22,6 +22,10 @@ One user-visible operation may contain multiple provider attempts. Per-attempt p
 
 Hosting, account auth, exact quota/credit economics, reward advertising, billing, and permanent storage are not decided or implemented. Doxary is a dedicated modular monolith, not a generic multi-app platform.
 
+### D-006 — Phase 1 process health and immutable pricing evidence
+
+`GET /api/v1/health` reports process liveness only; it does not claim database readiness. This keeps the initial health contract honest without creating a deployment-specific readiness system. Usage cost is stored as exact decimal plus a canonical immutable price-input snapshot per append-only event, rather than a reference to mutable current pricing. PostgreSQL is production-targeted; SQLite is restricted to fast normal tests, with PostgreSQL validation remaining an explicit local/CI step.
+
 ## Open questions (intentionally unresolved)
 
 - Initial provider and exact model/configuration; regional/provider processing terms.

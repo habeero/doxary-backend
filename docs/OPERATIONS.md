@@ -8,6 +8,8 @@ An Operation is one logical user-requested process: `document_analysis`, `docume
 
 An **attempt** is a provider-facing execution within an operation. One logical operation can have an initial attempt, transient retry, or later fallback attempt. Attempts independently record ordinal, timing, outcome, safe error category, configuration references, and usage/cost. The client sees one operation, not duplicated analyses or charges.
 
+Phase 1 persists these lifecycle values and their timestamps without exposing an operation API or executing work. The domain transition model permits only `accepted -> processing/cancelled/expired` and `processing -> succeeded/partial/failed/cancelled/expired`. An attempt table has a unique positive ordinal per operation; it does not imply a provider was called.
+
 ## Quality versus infrastructure outcomes
 
 Input/document quality is a valid product result: `partial` or `unavailable` with quality reasons such as unreadable text or missing pages. Infrastructure problems are typed failures: validation/unsupported input, rate limit, quota exhaustion, provider timeout/unavailability/failure, structured output invalid, or unexpected internal error. A retryable technical failure must never be represented as a statement about the document’s quality.

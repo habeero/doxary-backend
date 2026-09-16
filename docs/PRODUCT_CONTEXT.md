@@ -12,4 +12,4 @@ One logical local Document can be one image, multiple ordered images/pages, or o
 
 ## Explicit non-goals
 
-Backend Phase 0 does not build application code or infrastructure. The backend is not a generic Habeero platform, multi-tenant application registry, microservice suite, account system, sync service, permanent cloud-file store, billing system, or provider integration.
+Phase 1 implements only the backend foundation: health, persistence for backend-owned operations/attempts/usage/idempotency, and provider-neutral contracts. The backend is not a generic Habeero platform, multi-tenant application registry, microservice suite, account system, sync service, permanent cloud-file store, billing system, or provider integration.

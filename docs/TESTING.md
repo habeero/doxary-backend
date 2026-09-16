@@ -10,3 +10,5 @@ Normal automated tests use fakes/fixtures, not live paid provider calls or real 
 - **Cost:** per-attempt usage event accuracy, retries/failures, latency, and historical price-snapshot calculation.
 
 Every bug fix receives a focused regression test. Migrations are forward-only, reviewable, and tested against representative upgrade paths; production fixes never depend on dropping/resetting the database. Contract test fixtures protect Flutter compatibility.
+
+Phase 1 tests cover factory configuration, process health, valid/invalid request correlation, typed/sanitized errors, operation lifecycle, privacy-safe formatter allowlisting, operation/attempt/idempotency constraints, exact decimal cost snapshots, and an Alembic upgrade against a temporary SQLite database. SQLite is solely the fast normal-test engine; it does not establish PostgreSQL-specific compatibility. PostgreSQL migration validation is an explicit local/CI step once a local PostgreSQL instance is available, not a hosted or paid test requirement.

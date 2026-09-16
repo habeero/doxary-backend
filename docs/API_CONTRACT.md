@@ -26,6 +26,8 @@ Future HTTP APIs are versioned under `/api/v1`. JSON uses `lower_snake_case`; ex
 
 Analysis accepts one image, multiple ordered images/pages, or one PDF as a logical Document. It must validate allowed MIME and practical file signature/content, declared/actual size, request size, page/file count, malformed/corrupt input, safe generated filenames, and bounded temporary lifecycle. Exact production limits are configuration policy and intentionally unset in Phase 0. Filename extensions alone are never trusted.
 
+Phase 1 implements only `GET /api/v1/health`, returning `{ "status": "ok", "request_id": "..." }`. It is a process-liveness check and deliberately does not assert database readiness. Every current API response returns `X-Request-ID`; an incoming UUID-shaped value in that header is preserved, otherwise the request adapter generates an opaque UUID.
+
 ## Operation response, idempotency, and errors
 
 `POST /documents/analyze` is asynchronous by default: `202 {operation_id, status, request_id}`. Polling returns operation lifecycle status and an analysis envelope only when available. The client supplies a high-entropy `Idempotency-Key` for costly/mutating operations. Scope it by caller/device abuse-control scope plus route; bind it to a canonical request fingerprint; persist its result/operation for a configurable bounded replay window. A key reused for materially different input is rejected. It is not a document ID or request ID.

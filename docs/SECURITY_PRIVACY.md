@@ -17,3 +17,5 @@ Structured logs may contain request/operation ID, route, operation type, duratio
 Temporary original files are removed on normal completion, handled failure, expiry, and orphan recovery. Follow-up context supports explicit deletion and automatic expiry. Any future account/sync/cloud-storage deletion behavior—including backups—requires a separately documented policy.
 
 MVP may be anonymous or device-scoped for abuse control only; device identity is not authentication. Technical rate limiting, provider protection, product quota, and upload limits solve different problems. JWT, passwords, OAuth, registration, and recovery are out of Phase 1 scope.
+
+Phase 1 forces production debug off, centralizes secret-bearing configuration, returns a stable sanitized unexpected-error response, and uses an allowlist-based JSON formatter so arbitrary log extra fields such as document text are excluded. It has no upload or file-serving route, no authentication, and no provider integration. This is a security foundation, not a GDPR-compliance claim.
