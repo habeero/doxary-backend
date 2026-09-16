@@ -6,6 +6,8 @@ The worker's claim transaction commits before executor/network work and a separa
 
 Provider boundary tests also map handcrafted complete, partial, and unavailable transport payloads through the production injection/validation helper, verify `store=False`, and verify failed provider responses retain usage/cost telemetry without creating results.
 
+Phase 2.4 live validation performed one synthetic image request through the production worker/provider path and verified successful Responses execution, `AnalysisResult v1`, result and usage persistence, and temporary-input cleanup. The configured model had no pricing snapshot, so cost was correctly unavailable. This paid smoke path is opt-in and is not part of normal pytest.
+
 Normal automated tests use fakes/fixtures, not live paid provider calls or real sensitive documents. Fixtures are synthetic or appropriately redacted.
 
 - **Unit/application:** value behavior, normalization, lifecycle transitions, idempotency decisions, routing/prompt selection with fakes, no-fabrication and quality outcomes.

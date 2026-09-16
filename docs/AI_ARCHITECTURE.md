@@ -17,6 +17,8 @@ Provider failures retain only bounded technical diagnostics on the operation att
 
 Document-analysis Responses requests explicitly set `store=False`. Usage and latency are captured for every provider response before Doxary mapping; mapping or domain-validation failure still records a failed `UsageEvent` and cost when pricing is known, but never creates an `OperationResult`.
 
+The live Phase 2.4 image smoke verification succeeded through Responses, strict transport output, backend injection, `AnalysisResult v1`, `OperationResult`, `UsageEvent`, and local cleanup. Provider-file cleanup was not applicable because the verified path used an image rather than an uploaded PDF. Cost was unavailable because `gpt-5.6-luna` has no configured pricing snapshot.
+
 ## Prompt strategy
 
 Prompts will be registered and versioned with identifier, version, purpose, expected inputs, output schema version, safety/behavior rules, and where appropriate synthetic/redacted evaluation fixtures. Prompt/model/config references are recorded on operations and usage events, allowing regressions in quality or cost to be correlated without storing source content. Prompts are not scattered string literals.

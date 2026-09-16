@@ -4,6 +4,8 @@ Pydantic Settings loads an optional local `.env`; operating-system environment v
 
 Worker defaults are poll interval 2 seconds, lease 300 seconds, maximum attempts 3, and retry delay 5 seconds. These are development/runtime defaults, not final production policy.
 
+`DOXARY_AI_MODEL` selects the runtime provider model; pricing is configured separately as versioned telemetry evidence and is not inferred from the model name. The OpenAI API key is runtime-only secret configuration and is never persisted or exposed.
+
 Future runtime configuration is centralized, typed, validated at startup, and injected through composition. Modules must not scatter `os.getenv` calls. Separate development, test, and production configurations; secrets are supplied only by an environment/secret manager, never committed or returned by endpoints.
 
 Expected configuration groups include application environment, database URL, secret material, provider credentials, upload/request/page limits, temporary-file and follow-up-context retention, provider timeouts/retry bounds, rate limits, model-routing configuration, pricing snapshots, and feature flags. Exact production values—especially retention and upload limits—remain open policy decisions and must be explicitly justified before deployment.

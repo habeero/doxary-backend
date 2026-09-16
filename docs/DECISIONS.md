@@ -42,6 +42,10 @@ Phase 2.3 uses PostgreSQL row locking (`FOR UPDATE SKIP LOCKED`) as the MVP dura
 
 Phase 2.4 keeps provider execution behind the worker executor boundary. OpenAI is enabled explicitly, the SDK uses no implicit retries, and temporary provider file resources are deleted after a request where possible. Public status/result delivery remains Phase 2.5.
 
+### D-011 — Explicit provider privacy and telemetry boundaries
+
+Document-analysis Responses requests set `store=False`. The provider transport schema contains model-generated fields only; Doxary injects server-owned `client_document_id` and `schema_version` before validating its authoritative `AnalysisResult v1` contract. Usage/latency and known Decimal cost are recorded even when post-response mapping fails. Unpriced models retain usage with null cost rather than fabricated pricing; pricing snapshots are immutable telemetry evidence, not billing.
+
 ## Open questions (intentionally unresolved)
 
 - Initial provider and exact model/configuration; regional/provider processing terms.
