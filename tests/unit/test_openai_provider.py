@@ -15,22 +15,28 @@ from pydantic import ValidationError
 
 
 class FakeResponses:
-    def __init__(self, result=None, error=None):
-        self.result, self.error = result, error
+    def __init__(self, result=None, error=None, output_text=None):
+        self.result, self.error, self.output_text = result, error, output_text
 
     def create(self, **kwargs):
         self.kwargs = kwargs
         if self.error:
             raise self.error
         return SimpleNamespace(
-            output_text=self.result.model_dump_json() if self.result else "{}",
+            output_text=(
+                self.output_text
+                if self.output_text is not None
+                else self.result.model_dump_json()
+                if self.result
+                else "{}"
+            ),
             usage=SimpleNamespace(input_tokens=2, output_tokens=3),
         )
 
 
 class FakeClient:
-    def __init__(self, result=None, error=None):
-        self.responses = FakeResponses(result, error)
+    def __init__(self, result=None, error=None, output_text=None):
+        self.responses = FakeResponses(result, error, output_text)
         self.deleted = []
         self.files = SimpleNamespace(
             create=lambda **kwargs: SimpleNamespace(id="file-test"),
@@ -121,6 +127,11 @@ def test_transport_schema_is_strict_and_removes_unsupported_domain_constraints()
     assert "schema_version" not in format_config["schema"]["properties"]
     assert "schema_version" not in format_config["schema"]["required"]
     defs = format_config["schema"]["$defs"]
+    assert defs["Amount"]["properties"]["direction"]["enum"] == [
+        "pay",
+        "receive",
+        "unknown",
+    ]
     assert "YYYY-MM-DD" in defs["Deadline"]["properties"]["value"]["description"]
     assert "no timezone" in defs["Appointment"]["properties"]["appointment_time"]["description"]
 
@@ -146,6 +157,34 @@ def test_local_document_id_is_injected_before_domain_validation():
     parsed = _parse_transport_result(json.dumps(payload), _document())
     assert parsed.client_document_id == "doc"
     assert parsed.schema_version == "analysis_result.v1"
+
+
+def test_transport_rejects_invalid_amount_direction_as_structured_output_invalid():
+    payload = _result().model_dump(mode="json")
+    payload.pop("client_document_id")
+    payload["extracted_facts"] = {
+        "amounts": [
+            {
+                "value": "12.50",
+                "currency": "EUR",
+                "purpose": "Fee",
+                "direction": "threshold",
+            }
+        ]
+    }
+
+    with pytest.raises(ValidationError) as captured:
+        _parse_transport_result(json.dumps(payload), _document())
+
+    assert "amounts" in str(captured.value)
+    assert "direction" in str(captured.value)
+    outcome = OpenAIAnalysisExecutor(
+        "test",
+        "test-model",
+        1,
+        client=FakeClient(output_text=json.dumps(payload)),
+    ).execute(_document())
+    assert outcome.failure_code == "structured_output_invalid"
 
 
 def test_validation_diagnostic_retains_only_error_path_and_category():

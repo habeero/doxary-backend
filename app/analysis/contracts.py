@@ -50,6 +50,12 @@ class QualityReason(StrEnum):
     INSUFFICIENT_CONTENT = "insufficient_content"
 
 
+class AmountDirection(StrEnum):
+    PAY = "pay"
+    RECEIVE = "receive"
+    UNKNOWN = "unknown"
+
+
 class UncertaintyCode(StrEnum):
     AMBIGUOUS_DATE = "ambiguous_date"
     SENDER_UNCLEAR = "sender_unclear"
@@ -144,7 +150,7 @@ class Amount(ContractModel):
     value: Decimal = Field(max_digits=20, decimal_places=8)
     currency: Annotated[str, Field(min_length=3, max_length=3)]
     purpose: NonEmptyText
-    direction: str = "unknown"
+    direction: AmountDirection = AmountDirection.UNKNOWN
     due_date: date | None = None
     evidence_reference_ids: list[NonEmptyText] = Field(default_factory=list)
     uncertainties: list[Uncertainty] = Field(default_factory=list)

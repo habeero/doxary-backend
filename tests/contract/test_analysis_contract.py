@@ -4,6 +4,7 @@ import pytest
 from app.analysis.contracts import (
     ActionRequirement,
     Amount,
+    AmountDirection,
     AnalysisResult,
     AnalysisStatus,
     Explanation,
@@ -73,6 +74,40 @@ def test_nonexclusive_states_arabic_simple_german_and_exact_amount():
     assert result.explanation.style is ExplanationStyle.SIMPLE
     assert result.extracted_facts.amounts[0].value == Decimal("12.34000000")
     assert result.extracted_facts.amounts[0].currency == "EUR"
+
+
+@pytest.mark.parametrize("direction", list(AmountDirection))
+def test_amount_direction_accepts_only_contract_enum_values(direction):
+    result = complete_result(
+        extracted_facts={
+            "amounts": [
+                {
+                    "value": "12.50",
+                    "currency": "EUR",
+                    "purpose": "Fee",
+                    "direction": direction.value,
+                }
+            ]
+        }
+    )
+
+    assert result.extracted_facts.amounts[0].direction is direction
+
+
+def test_amount_direction_rejects_arbitrary_provider_token():
+    with pytest.raises(ValidationError):
+        complete_result(
+            extracted_facts={
+                "amounts": [
+                    {
+                        "value": "12.50",
+                        "currency": "EUR",
+                        "purpose": "Fee",
+                        "direction": "threshold",
+                    }
+                ]
+            }
+        )
 
 
 def test_evidence_uncertainty_and_quality_are_typed():

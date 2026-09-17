@@ -1,4 +1,5 @@
 from app.analysis.contracts import (
+    AmountDirection,
     AnalysisResult,
     AnalysisStatus,
     Explanation,
@@ -6,4 +7,11 @@ from app.analysis.contracts import (
     QualityReason,
 )
 
-__all__ = ["AnalysisResult", "AnalysisStatus", "Explanation", "ExplanationStyle", "QualityReason"]
+__all__ = [
+    "AmountDirection",
+    "AnalysisResult",
+    "AnalysisStatus",
+    "Explanation",
+    "ExplanationStyle",
+    "QualityReason",
+]
