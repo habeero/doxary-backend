@@ -1,6 +1,7 @@
 import base64
 import json
 import logging
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import date, datetime, time
 from decimal import Decimal
@@ -186,12 +187,36 @@ def _failure_code(error: Exception) -> str:
 def _safe_failure_diagnostic(error: Exception) -> str:
     """Keep technical classification, never provider messages or request data."""
     fields = [f"exception={type(error).__name__}"]
-    for name in ("status_code", "code", "type", "request_id"):
-        value = getattr(error, name, None)
-        if value is not None:
-            safe = "".join(char for char in str(value) if char.isalnum() or char in "-_.")
-            fields.append(f"{name}={safe[:48]}")
-    return ",".join(fields)[:128]
+    values = {
+        "status_code": _safe_scalar(getattr(error, "status_code", None)),
+        "code": _safe_scalar(getattr(error, "code", None)),
+        "type": _safe_scalar(getattr(error, "type", None)),
+        "param": _safe_scalar(getattr(error, "param", None)),
+        "request_id": _safe_scalar(getattr(error, "request_id", None)),
+    }
+    body = getattr(error, "body", None)
+    nested = body.get("error") if isinstance(body, Mapping) else None
+    if isinstance(nested, Mapping):
+        for name in ("type", "code", "param"):
+            if values[name] is None:
+                values[name] = _safe_scalar(nested.get(name))
+    if values["request_id"] is None:
+        response = getattr(error, "response", None)
+        headers = getattr(response, "headers", None)
+        if isinstance(headers, Mapping):
+            values["request_id"] = _safe_scalar(headers.get("x-request-id"))
+    for name in ("status_code", "type", "code", "param", "request_id"):
+        if values[name] is not None:
+            fields.append(f"{name}={values[name]}")
+    return bound_diagnostic(",".join(fields)) or "exception=unknown"
+
+
+def _safe_scalar(value: object) -> str | None:
+    """Allow only bounded scalar provider metadata; never stringify objects."""
+    if isinstance(value, bool) or not isinstance(value, (str, int, float)):
+        return None
+    safe = "".join(char for char in str(value) if char.isalnum() or char in "-_.")
+    return safe[:48] or None
 
 
 _TRANSPORT_UNSUPPORTED_SCHEMA_KEYS = {

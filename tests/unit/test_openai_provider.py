@@ -1,16 +1,19 @@
 import json
 from types import SimpleNamespace
 
+import httpx
 import pytest
 from app.ai.openai_provider import (
     OpenAIAnalysisExecutor,
     PricingSnapshot,
     _parse_transport_result,
+    _safe_failure_diagnostic,
     _safe_validation_diagnostic,
     structured_output_format,
 )
 from app.analysis.contracts import AnalysisResult
 from app.intake.domain.input import DocumentInput, InputFile, InputKind
+from openai import BadRequestError
 from pydantic import ValidationError
 
 
@@ -148,6 +151,61 @@ def test_failure_diagnostic_contains_only_safe_technical_fields():
     assert outcome.failure_code == "provider_failure"
     assert "status_code=400" in outcome.failure_diagnostic
     assert "invalid_json_schema" in outcome.failure_diagnostic
+
+
+def test_bad_request_diagnostic_reads_allowlisted_nested_sdk_metadata_only():
+    request = httpx.Request("POST", "https://api.test")
+    error = BadRequestError(
+        "SECRET_PROVIDER_MESSAGE",
+        response=httpx.Response(
+            400,
+            request=request,
+            headers={"x-request-id": "req_nested"},
+        ),
+        body={
+            "error": {
+                "type": "invalid_request_error",
+                "code": "invalid_schema",
+                "param": "text.format",
+                "message": "SECRET_NESTED_MESSAGE",
+                "metadata": {"document_text": "SECRET_DOCUMENT"},
+            },
+            "unexpected": {"raw": "SECRET_RAW_BODY"},
+        },
+    )
+
+    diagnostic = _safe_failure_diagnostic(error)
+
+    assert "status_code=400" in diagnostic
+    assert "type=invalid_request_error" in diagnostic
+    assert "code=invalid_schema" in diagnostic
+    assert "param=text.format" in diagnostic
+    assert "request_id=req_nested" in diagnostic
+    assert "SECRET" not in diagnostic
+    assert "message" not in diagnostic
+    assert len(diagnostic) <= 128
+
+
+def test_failure_diagnostic_ignores_non_scalar_nested_provider_metadata():
+    error = type(
+        "BadRequestLike",
+        (Exception,),
+        {
+            "status_code": 400,
+            "body": {
+                "error": {
+                    "type": {"nested": "invalid_request_error"},
+                    "code": ["invalid_schema"],
+                    "param": object(),
+                }
+            },
+        },
+    )()
+
+    diagnostic = _safe_failure_diagnostic(error)
+
+    assert diagnostic == "exception=BadRequestLike,status_code=400"
+    assert len(diagnostic) <= 128
 
 
 def test_local_document_id_is_injected_before_domain_validation():
