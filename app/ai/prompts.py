@@ -15,7 +15,7 @@ class StaticPromptRegistry:
         if purpose is not AIPurpose.DOCUMENT_ANALYSIS:
             raise ValueError("unsupported prompt purpose")
         return AnalysisPrompt(
-            reference=PromptReference("doxary.document_analysis", "1", purpose, SCHEMA_VERSION),
+            reference=PromptReference("doxary.document_analysis", "2", purpose, SCHEMA_VERSION),
             instructions=(
                 "Analyze only the supplied document. Extract only grounded sender, type, dates, "
                 "deadlines, appointments, amounts, required documents, practical actions, quality "
@@ -26,6 +26,9 @@ class StaticPromptRegistry:
                 "ISO calendar date (YYYY-MM-DD), or an ISO datetime at UTC/naive midnight; never "
                 "emit natural-language or locale-formatted dates. Put human-readable wording in "
                 "source_text and use uncertainty when a date is ambiguous. Appointment times must "
-                "be offset-free ISO times without timezone information."
+                "be offset-free ISO times without timezone information. For each amount value, "
+                "emit only a JSON number using a decimal point where needed; never include a "
+                "currency symbol/code, thousands separators, qualifiers, ranges, or prose. Put "
+                "the currency in currency. Omit an amount when no reliable numeric value exists."
             ),
         )

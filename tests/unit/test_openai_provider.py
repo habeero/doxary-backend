@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal
 from types import SimpleNamespace
 
 import httpx
@@ -114,7 +115,7 @@ def test_images_are_sent_in_page_order_with_preferences_and_prompt_metadata():
     assert "ar" in user[0]["text"] and "simple" in user[0]["text"]
     assert [item["image_url"].split(",", 1)[1] for item in user[1:]] == ["Zmlyc3Q=", "c2Vjb25k"]
     assert client.responses.kwargs["text"]["format"]["type"] == "json_schema"
-    assert outcome.prompt_id == "doxary.document_analysis" and outcome.prompt_version == "1"
+    assert outcome.prompt_id == "doxary.document_analysis" and outcome.prompt_version == "2"
     assert client.responses.kwargs["store"] is False
 
 
@@ -135,6 +136,13 @@ def test_transport_schema_is_strict_and_removes_unsupported_domain_constraints()
         "receive",
         "unknown",
     ]
+    assert defs["Amount"]["properties"]["value"] == {
+        "type": "number",
+        "description": (
+            "Canonical monetary number only. Do not include currency, thousands "
+            "separators, qualifiers, ranges, or prose."
+        ),
+    }
     assert "YYYY-MM-DD" in defs["Deadline"]["properties"]["value"]["description"]
     assert "no timezone" in defs["Appointment"]["properties"]["appointment_time"]["description"]
 
@@ -243,6 +251,79 @@ def test_transport_rejects_invalid_amount_direction_as_structured_output_invalid
         client=FakeClient(output_text=json.dumps(payload)),
     ).execute(_document())
     assert outcome.failure_code == "structured_output_invalid"
+
+
+def _transport_payload_with_amounts(amounts: list[dict]) -> dict:
+    payload = _result().model_dump(mode="json")
+    payload.pop("client_document_id")
+    payload["extracted_facts"] = {"amounts": amounts}
+    return payload
+
+
+def test_numeric_transport_amounts_validate_as_decimals():
+    payload = _transport_payload_with_amounts(
+        [
+            {"value": 1200, "currency": "EUR", "purpose": "Invoice"},
+            {"value": 1234.56, "currency": "EUR", "purpose": "Fee"},
+            {"value": -12.5, "currency": "EUR", "purpose": "Refund"},
+        ]
+    )
+
+    parsed = _parse_transport_result(json.dumps(payload), _document())
+
+    assert [amount.value for amount in parsed.extracted_facts.amounts] == [
+        Decimal("1200"),
+        Decimal("1234.56"),
+        Decimal("-12.5"),
+    ]
+
+
+@pytest.mark.parametrize(
+    "value",
+    ["1.234,56", "EUR 1,234.56", "ca. 1200", "1.200 bis 1.500", "unknown", None],
+)
+def test_transport_rejects_non_numeric_or_null_amount_values(value):
+    payload = _transport_payload_with_amounts(
+        [{"value": value, "currency": "EUR", "purpose": "Amount"}]
+    )
+
+    with pytest.raises(ValidationError):
+        _parse_transport_result(json.dumps(payload), _document())
+
+
+def test_multi_image_provider_output_with_numeric_amounts_is_one_valid_result():
+    document = DocumentInput(
+        kind=InputKind.IMAGES,
+        client_document_id="doc",
+        output_language="de",
+        output_style="standard",
+        files=(
+            InputFile(b"second", "image/png", "2.png", 1, "b"),
+            InputFile(b"first", "image/jpeg", "1.jpg", 0, "a"),
+        ),
+    )
+    payload = _transport_payload_with_amounts(
+        [
+            {"value": 12, "currency": "EUR", "purpose": "First"},
+            {"value": 12.5, "currency": "EUR", "purpose": "Second"},
+            {"value": -1, "currency": "EUR", "purpose": "Third"},
+        ]
+    )
+    client = FakeClient(output_text=json.dumps(payload))
+
+    outcome = OpenAIAnalysisExecutor("test", "test-model", 1, client=client).execute(document)
+
+    assert outcome.kind == "success"
+    assert [amount.value for amount in outcome.result.extracted_facts.amounts] == [
+        Decimal("12"),
+        Decimal("12.5"),
+        Decimal("-1"),
+    ]
+    user = client.responses.kwargs["input"][1]["content"]
+    assert [item["image_url"].split(",", 1)[1] for item in user[1:]] == [
+        "Zmlyc3Q=",
+        "c2Vjb25k",
+    ]
 
 
 def test_validation_diagnostic_retains_only_error_path_and_category():

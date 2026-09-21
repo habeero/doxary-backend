@@ -23,6 +23,12 @@ The provider transport schema contains model-generated fields only. Doxary injec
 
 Transport-to-domain conversion is schema-aware: only `extracted_facts.document_date.value`, `deadlines[].value`, `appointments[].appointment_date`, `appointments[].appointment_time`, `amounts[].due_date`, `required_documents[].due_date`, and `suggested_tasks[].due_date` are considered. Plain ISO dates (`YYYY-MM-DD`) are accepted; date fields may additionally use a naive ISO datetime at midnight or UTC (`Z`/`+00:00`) midnight. Appointment times must be offset-free ISO times. Ambiguous/non-midnight or timezone-bearing appointment values remain invalid; no malformed value is converted to null.
 
+The provider transport schema narrows `amounts[].value` from Pydantic's
+number-or-string `Decimal` representation to a JSON number. This prevents
+locale-formatted or otherwise human-readable monetary text from reaching the
+authoritative Decimal parser. The domain contract remains strict and does not
+normalize currency symbols, grouping separators, qualifiers, ranges, or prose.
+
 Because OpenAI Structured Outputs does not preserve Pydantic `format` constraints, the provider schema adds explicit machine-readable field descriptions and the prompt requires ISO calendar dates/times. The domain parser remains the final authority; normalization is retained only for the documented midnight datetime compatibility.
 
 Validation diagnostics use the compact `VE;path:category[metadata];...` form (for example `dl0v:dd[t=s,d=0,dt=0,z=0,m=0]`) and are bounded to 128 characters. Path/category entries are appended atomically; raw values are never included.

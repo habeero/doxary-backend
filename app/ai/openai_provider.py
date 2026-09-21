@@ -243,12 +243,33 @@ def structured_output_format() -> dict:
     for server_owned in ("client_document_id", "schema_version"):
         schema["properties"].pop(server_owned, None)
         schema["required"].remove(server_owned)
+    _constrain_transport_amount_values(schema)
     _annotate_transport_date_time_fields(schema)
     return {
         "type": "json_schema",
         "name": "analysis_result_v1",
         "strict": True,
         "schema": schema,
+    }
+
+
+def _constrain_transport_amount_values(schema: dict) -> None:
+    """Require JSON numbers for provider monetary values.
+
+    Pydantic exposes ``Decimal`` as a number-or-string union, but an OpenAI
+    strict schema cannot retain Pydantic's decimal lexical constraints. A JSON
+    number keeps formatted monetary text out of the provider transport while
+    the authoritative model remains responsible for Decimal precision bounds.
+    """
+    properties = schema.get("$defs", {}).get("Amount", {}).get("properties", {})
+    if "value" not in properties:
+        raise ValueError("analysis transport schema is missing Amount.value")
+    properties["value"] = {
+        "type": "number",
+        "description": (
+            "Canonical monetary number only. Do not include currency, thousands "
+            "separators, qualifiers, ranges, or prose."
+        ),
     }
 
 

@@ -20,6 +20,16 @@ Phase 2.1 implements the provider-neutral Pydantic contract in `app/analysis/con
 
 The Pydantic boundary rejects unknown fields, invalid enum values, malformed nested objects, unsupported schema versions, invalid dates/amounts, and unbounded evidence excerpts. Persisted payloads are revalidated on read before becoming trusted application data.
 
+`extracted_facts.amounts[*].value` remains a required authoritative `Decimal` in
+`analysis_result.v1`. The AI-facing OpenAI transport schema emits it as a JSON
+number only, so it cannot contain localized formatting, currency text, ranges,
+qualifiers, or prose. A fractional value uses the JSON decimal point form (for
+example `1234.56`); negative values are valid when grounded. The v1 amount
+model does not permit `null`: when no reliable numeric amount can be extracted,
+the provider omits that amount and records uncertainty where appropriate. This
+tightens only the provider transport schema; it does not change the public v1
+result shape or require a schema-version bump.
+
 OpenAI transport output is a separate, weaker representation. Doxary explicitly normalizes only the date/time paths listed in `AI_ARCHITECTURE.md`, then validates the complete provider-neutral `AnalysisResult v1`. Plain ISO dates and UTC/naive-midnight date datetimes are accepted; timezone-bearing appointment times and ambiguous date/time values are rejected. Amount values are not generically normalized.
 
 The prompt and transport-schema descriptions require normalized machine-readable dates/times; natural-language or locale-formatted dates are not accepted. A staging run produced a non-ISO string for `deadlines[0].value`, confirming that transport descriptions/prompt guidance must be paired with strict post-response validation.
